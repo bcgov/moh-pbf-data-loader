@@ -1,0 +1,18 @@
+spring:
+  profiles:
+    active: dev
+  batch:
+    jdbc:
+      initialize-schema: always
+  datasource:
+    driverClassName: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        default_schema: pbf
+        dialect: org.hibernate.dialect.PostgreSQL95Dialect
+      javax.persistence.create-database-schemas: true
+file:
+  input:
+    tpcrt: c:/pbf/MSP_TPCPRT_VW.csv
+    tpcpy: c:/pbf/MSP_TPCPY_VW.csv
