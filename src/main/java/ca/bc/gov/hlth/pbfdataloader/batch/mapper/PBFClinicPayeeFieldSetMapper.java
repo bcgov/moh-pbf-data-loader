@@ -6,7 +6,7 @@ import org.springframework.validation.BindException;
 
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
 
-public class PayeeFieldSetMapper implements FieldSetMapper<PBFClinicPayee>{
+public class PBFClinicPayeeFieldSetMapper implements FieldSetMapper<PBFClinicPayee>{
 	
 	private static final String PBF_DATE_FORMAT = "yyyy-MM-dd";
 

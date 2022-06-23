@@ -37,16 +37,16 @@ public class PatientRegister {
 	@Temporal(TemporalType.DATE)
 	private Date cancelDate;
 
-	@Column(name = "special_indicator", nullable = false)
-	private Boolean specialIndicator;
+	@Column(name = "adminstrative_code", nullable = false)
+	private Boolean administrativeCode;
 
-	@Column(name = "registration_reason_code", nullable = false)
+	@Column(name = "registration_reason_code", nullable = true)
 	private String registrationReasonCode;
 
-	@Column(name = "deregistration_reason_code", nullable = false)
+	@Column(name = "deregistration_reason_code", nullable = true)
 	private String deregistrationReasonCode;
 
-	@Column(name = "cancel_reason_code", nullable = false)
+	@Column(name = "cancel_reason_code", nullable = true)
 	private String cancelReasonCode;
 
 	public Long getPatientRegisterId() {
@@ -97,12 +97,12 @@ public class PatientRegister {
 		this.cancelDate = cancelDate;
 	}
 
-	public Boolean getSpecialIndicator() {
-		return specialIndicator;
+	public Boolean getAdministrativeCode() {
+		return administrativeCode;
 	}
 
-	public void setSpecialIndicator(Boolean specialIndicator) {
-		this.specialIndicator = specialIndicator;
+	public void setAdministrativeCode(Boolean administrativeCode) {
+		this.administrativeCode = administrativeCode;
 	}
 
 	public String getRegistrationReasonCode() {
