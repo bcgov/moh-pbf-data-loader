@@ -38,7 +38,7 @@ public class PatientRegister {
 	private Date cancelDate;
 
 	@Column(name = "adminstrative_code", nullable = false)
-	private Boolean administrativeCode;
+	private String administrativeCode;
 
 	@Column(name = "registration_reason_code", nullable = true)
 	private String registrationReasonCode;
@@ -97,11 +97,11 @@ public class PatientRegister {
 		this.cancelDate = cancelDate;
 	}
 
-	public Boolean getAdministrativeCode() {
+	public String getAdministrativeCode() {
 		return administrativeCode;
 	}
 
-	public void setAdministrativeCode(Boolean administrativeCode) {
+	public void setAdministrativeCode(String administrativeCode) {
 		this.administrativeCode = administrativeCode;
 	}
 

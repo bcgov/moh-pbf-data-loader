@@ -4,6 +4,11 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+      schema: classpath:db/schema-postgresql.sql
+      table-prefix: pbf.BATCH_
+    job:
+      # Don't run at startup since the job is scheduled
+      enabled: false
   datasource:
     driverClassName: org.postgresql.Driver
   jpa:
@@ -12,7 +17,3 @@ spring:
         default_schema: pbf
         dialect: org.hibernate.dialect.PostgreSQL95Dialect
       javax.persistence.create-database-schemas: true
-file:
-  input:
-    tpcrt: c:/pbf/MSP_TPCPRT_VW.csv
-    tpcpy: c:/pbf/MSP_TPCPY_VW.csv

@@ -28,6 +28,7 @@ import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PatientRegisterFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PBFClinicPayeeProcessor;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PatientRegisterProcessor;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgePBFClinicPayeeTasklet;
+import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.DeleteFilesTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgeClientRegisterTasklet;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
@@ -59,40 +60,41 @@ public class BatchConfiguration {
 	private String tpcpyFile;
 	
 	@Bean
-	public Job importTpcpyJob(JobCompletionNotificationListener listener, Step step1, Step step2, Step step3, Step step4) {
-	    return jobBuilderFactory.get("importTpcpyJob")
+	public Job importJob(JobCompletionNotificationListener listener, Step purgePBFClinicPayee, Step purgeClientRegister, Step writePBFClinicPayee, Step writeClientRegister, Step deleteFiles) {
+	    return jobBuilderFactory.get("importJob")
 	      .incrementer(new RunIdIncrementer())
 	      .listener(listener)
-	      .start(step1)
-	      .next(step2)
-	      .next(step3)
-	      .next(step4)
+	      .start(purgePBFClinicPayee)
+	      .next(purgeClientRegister)
+	      .next(writePBFClinicPayee)
+	      .next(writeClientRegister)
+	      .next(deleteFiles)
 	      .build();
 	}
 
 	@Bean
-    public Step step1() {
+    public Step purgePBFClinicPayee() {
 	   	logger.info("Building Step 1 - Purge PBFClinicPayee table");
 	   	// Purge PBFClinicPayee table
-        return stepBuilderFactory.get("step1")
+        return stepBuilderFactory.get("Step 1 - purgePBFClinicPayee")
                 .tasklet(purgePBFClinicPayeeTasklet())
                 .build();
     }
    
    @Bean
-   public Step step2() {
+   public Step purgeClientRegister() {
 	   	logger.info("Building Step 2 - Purge ClientRegister table");
 	   	// Purge ClientRegister table
-       return stepBuilderFactory.get("step2")
+       return stepBuilderFactory.get("Step 2 - purgeClientRegister")
                .tasklet(purgeClientRegisterTasklet())
                .build();
    }
 	
 	@Bean
-	public Step step3(ItemWriter<PBFClinicPayee> writer) {
+	public Step writePBFClinicPayee(ItemWriter<PBFClinicPayee> writer) {
 		logger.info("Building Step 3 - Load the PBFClinicPayee data");
 		// Load the PBFClinicPayee data
-	    return stepBuilderFactory.get("step3")
+	    return stepBuilderFactory.get("Step 3 - writePBFClinicPayee")
 	      .<PBFClinicPayee, PBFClinicPayee> chunk(10)
 	      .reader(pbfClientPayeeReader())
 	      .processor(pbfClientPayeeProcessor())
@@ -101,15 +103,24 @@ public class BatchConfiguration {
 	}
 	
 	@Bean
-	public Step step4(ItemWriter<PatientRegister> writer) {
+	public Step writeClientRegister(ItemWriter<PatientRegister> writer) {
 		logger.info("Building Step 4 - Load the PatientRegister data");
 		// Load the PatientRegister data
-	    return stepBuilderFactory.get("step2")
+	    return stepBuilderFactory.get("Step 4 - writeClientRegister")
 	      .<PatientRegister, PatientRegister> chunk(10)
 	      .reader(patientRegisterReader())
 	      .processor(patientRegisterProcessor())
 	      .writer(writer)
 	      .build();
+	}
+	
+	@Bean
+	public Step deleteFiles() {
+	   	logger.info("Building Step 5 - Delete files");
+	   	// Purge PBFClinicPayee table
+        return stepBuilderFactory.get("deleteFiles")
+                .tasklet(deleteFilesTasklet())
+                .build();
 	}
 
 	@Bean
@@ -172,6 +183,15 @@ public class BatchConfiguration {
 	public PurgeClientRegisterTasklet purgeClientRegisterTasklet() {
 		PurgeClientRegisterTasklet tasklet = new PurgeClientRegisterTasklet();
 		tasklet.setInputFile(tpcrtFile);
+		return tasklet;
+	}
+	
+	@StepScope
+	@Bean
+	public DeleteFilesTasklet deleteFilesTasklet() {
+		DeleteFilesTasklet tasklet = new DeleteFilesTasklet();
+		tasklet.getFiles().add(tpcpyFile);
+		tasklet.getFiles().add(tpcrtFile);
 		return tasklet;
 	}
 	
