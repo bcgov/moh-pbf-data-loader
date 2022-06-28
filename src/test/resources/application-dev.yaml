@@ -1,0 +1,21 @@
+#server:
+#  port: 9090
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:mspdirect;MODE=PostgreSQL;INIT=runscript from 'classpath:scripts/create.sql'
+    driverClassName: org.h2.Driver
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+
+# Cron schedule
+batch:
+  cron: 0 */5 * * * *
+  
+# Input files
+file:
+  input:
+    tpcrt: c:/pbf/test/MSP_TPCPRT_VW.csv
+    tpcpy: c:/pbf/test/MSP_TPCPY_VW.csv

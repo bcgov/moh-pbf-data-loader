@@ -11,6 +11,8 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
@@ -27,9 +29,9 @@ import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PBFClinicPayeeFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PatientRegisterFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PBFClinicPayeeProcessor;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PatientRegisterProcessor;
-import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgePBFClinicPayeeTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.DeleteFilesTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgeClientRegisterTasklet;
+import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgePBFClinicPayeeTasklet;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
@@ -53,12 +55,6 @@ public class BatchConfiguration {
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
 	
-	@Value("${file.input.tpcrt}")
-	private String tpcrtFile;
-	
-	@Value("${file.input.tpcpy}")
-	private String tpcpyFile;
-	
 	@Bean
 	public Job importJob(JobCompletionNotificationListener listener, Step purgePBFClinicPayee, Step purgeClientRegister, Step writePBFClinicPayee, Step writeClientRegister, Step deleteFiles) {
 	    return jobBuilderFactory.get("importJob")
@@ -73,61 +69,62 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-    public Step purgePBFClinicPayee() {
+    public Step purgePBFClinicPayee(Tasklet purgePBFClinicPayeeTasklet) {
 	   	logger.info("Building Step 1 - Purge PBFClinicPayee table");
 	   	// Purge PBFClinicPayee table
         return stepBuilderFactory.get("Step 1 - purgePBFClinicPayee")
-                .tasklet(purgePBFClinicPayeeTasklet())
+                .tasklet(purgePBFClinicPayeeTasklet)
                 .build();
     }
    
    @Bean
-   public Step purgeClientRegister() {
+   public Step purgeClientRegister(Tasklet purgeClientRegisterTasklet) {
 	   	logger.info("Building Step 2 - Purge ClientRegister table");
 	   	// Purge ClientRegister table
        return stepBuilderFactory.get("Step 2 - purgeClientRegister")
-               .tasklet(purgeClientRegisterTasklet())
+               .tasklet(purgeClientRegisterTasklet)
                .build();
    }
 	
 	@Bean
-	public Step writePBFClinicPayee(ItemWriter<PBFClinicPayee> writer) {
+	public Step writePBFClinicPayee(ItemReader<PBFClinicPayee> reader, ItemWriter<PBFClinicPayee> writer) {
 		logger.info("Building Step 3 - Load the PBFClinicPayee data");
 		// Load the PBFClinicPayee data
 	    return stepBuilderFactory.get("Step 3 - writePBFClinicPayee")
 	      .<PBFClinicPayee, PBFClinicPayee> chunk(10)
-	      .reader(pbfClientPayeeReader())
+	      .reader(reader)
 	      .processor(pbfClientPayeeProcessor())
 	      .writer(writer)
 	      .build();
 	}
 	
 	@Bean
-	public Step writeClientRegister(ItemWriter<PatientRegister> writer) {
+	public Step writeClientRegister(ItemReader<PatientRegister> reader, ItemWriter<PatientRegister> writer) {
 		logger.info("Building Step 4 - Load the PatientRegister data");
 		// Load the PatientRegister data
 	    return stepBuilderFactory.get("Step 4 - writeClientRegister")
 	      .<PatientRegister, PatientRegister> chunk(10)
-	      .reader(patientRegisterReader())
+	      .reader(reader)
 	      .processor(patientRegisterProcessor())
 	      .writer(writer)
 	      .build();
 	}
-	
+
 	@Bean
-	public Step deleteFiles() {
+	public Step deleteFiles(Tasklet deleteFilesTasklet) {
 	   	logger.info("Building Step 5 - Delete files");
 	   	// Purge PBFClinicPayee table
         return stepBuilderFactory.get("deleteFiles")
-                .tasklet(deleteFilesTasklet())
+                .tasklet(deleteFilesTasklet)
                 .build();
 	}
 
+	@StepScope
 	@Bean
-	public FlatFileItemReader<PBFClinicPayee> pbfClientPayeeReader() {
+	public FlatFileItemReader<PBFClinicPayee> pbfClientPayeeReader(@Value("#{jobParameters['tpcpyFile']}") String input) {
 		
 	    return new FlatFileItemReaderBuilder<PBFClinicPayee>().name("tpcpyItemReader")
-	      .resource(new FileSystemResource(tpcpyFile))
+	      .resource(new FileSystemResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()
@@ -136,11 +133,12 @@ public class BatchConfiguration {
 	      .build();
 	}
 
+	@StepScope
 	@Bean
-	public FlatFileItemReader<PatientRegister> patientRegisterReader() {
+	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobParameters['tpcrtFile']}") String input) {
 		
 	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcrtItemReader")
-	      .resource(new FileSystemResource(tpcrtFile))
+	      .resource(new FileSystemResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()
@@ -172,23 +170,23 @@ public class BatchConfiguration {
 	
 	@StepScope
 	@Bean
-	public PurgePBFClinicPayeeTasklet purgePBFClinicPayeeTasklet() {
+	public PurgePBFClinicPayeeTasklet purgePBFClinicPayeeTasklet(@Value("#{jobParameters['tpcpyFile']}") String input) {
 		PurgePBFClinicPayeeTasklet tasklet = new PurgePBFClinicPayeeTasklet();
-		tasklet.setInputFile(tpcpyFile);
+		tasklet.setInputFile(input);
 		return tasklet;
 	}
 
 	@StepScope
 	@Bean
-	public PurgeClientRegisterTasklet purgeClientRegisterTasklet() {
+	public PurgeClientRegisterTasklet purgeClientRegisterTasklet(@Value("#{jobParameters['tpcrtFile']}") String input) {
 		PurgeClientRegisterTasklet tasklet = new PurgeClientRegisterTasklet();
-		tasklet.setInputFile(tpcrtFile);
+		tasklet.setInputFile(input);
 		return tasklet;
 	}
 	
 	@StepScope
 	@Bean
-	public DeleteFilesTasklet deleteFilesTasklet() {
+	public DeleteFilesTasklet deleteFilesTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
 		DeleteFilesTasklet tasklet = new DeleteFilesTasklet();
 		tasklet.getFiles().add(tpcpyFile);
 		tasklet.getFiles().add(tpcrtFile);

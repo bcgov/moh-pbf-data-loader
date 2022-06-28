@@ -1,0 +1,1 @@
+DELETE FROM pbf.pbf_clinic_payee;

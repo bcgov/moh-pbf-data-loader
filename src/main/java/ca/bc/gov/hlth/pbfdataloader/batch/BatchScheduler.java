@@ -10,6 +10,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,11 +25,19 @@ public class BatchScheduler {
 
 	@Autowired
 	private Job importJob;
+	
+	@Value("${file.input.tpcrt}")
+	private String tpcrtFile;
+	
+	@Value("${file.input.tpcpy}")
+	private String tpcpyFile;
 
 	@Scheduled(cron = "${batch.cron}")
 	public void schedule() throws Exception {
 		logger.info("Running job");
 		JobParameters params = new JobParametersBuilder()
+				.addString("tpcrtFile", tpcrtFile)
+				.addString("tpcpyFile", tpcpyFile)
 				.addDate("date", new Date())
 				.toJobParameters();
 		JobExecution execution = jobLauncher.run(importJob, params);
