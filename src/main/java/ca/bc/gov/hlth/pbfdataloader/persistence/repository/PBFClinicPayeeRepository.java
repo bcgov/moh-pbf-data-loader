@@ -1,5 +1,7 @@
 package ca.bc.gov.hlth.pbfdataloader.persistence.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -18,5 +20,6 @@ public interface PBFClinicPayeeRepository extends CrudRepository<PBFClinicPayee,
     @Modifying
 	void deleteArchived();
 	
-
+	List<PBFClinicPayee> findByArchived(Boolean archived);
+	
 }

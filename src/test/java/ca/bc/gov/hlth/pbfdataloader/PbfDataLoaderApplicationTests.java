@@ -62,7 +62,7 @@ class PbfDataLoaderApplicationTests {
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
 		
-		// Validate that the tables are purged
+		// Validate that the tables are archived
 		
 		// Check the record count
 		assertEquals(43, pbfClinicPayeeRepository.count());

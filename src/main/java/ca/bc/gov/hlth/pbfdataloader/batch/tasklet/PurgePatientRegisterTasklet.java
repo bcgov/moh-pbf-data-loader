@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
 
-public class PurgeClientRegisterTasklet extends PurgeTasklet implements Tasklet {
+public class PurgePatientRegisterTasklet extends PurgeTasklet implements Tasklet {
 	
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
@@ -16,7 +16,7 @@ public class PurgeClientRegisterTasklet extends PurgeTasklet implements Tasklet 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 		if (fileExists()) {
-			patientRegisterRepository.deleteAll();	
+			patientRegisterRepository.deleteArchived();	
 		}		
 		return RepeatStatus.FINISHED;
 	}
