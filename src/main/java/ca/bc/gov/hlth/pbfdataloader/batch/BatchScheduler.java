@@ -26,8 +26,8 @@ public class BatchScheduler {
 	@Autowired
 	private Job importJob;
 	
-	@Value("${file.input.tpcrt}")
-	private String tpcrtFile;
+	@Value("${file.input.tpcprt}")
+	private String tpcprtFile;
 	
 	@Value("${file.input.tpcpy}")
 	private String tpcpyFile;
@@ -36,7 +36,7 @@ public class BatchScheduler {
 	public void schedule() throws Exception {
 		logger.info("Running job");
 		JobParameters params = new JobParametersBuilder()
-				.addString("tpcrtFile", tpcrtFile)
+				.addString("tpcrtFile", tpcprtFile)
 				.addString("tpcpyFile", tpcpyFile)
 				.addDate("date", new Date())
 				.toJobParameters();

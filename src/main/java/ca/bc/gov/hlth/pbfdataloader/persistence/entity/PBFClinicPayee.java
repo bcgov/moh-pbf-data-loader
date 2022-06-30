@@ -34,6 +34,9 @@ public class PBFClinicPayee {
 	@Column(name = "report_group", nullable = false)
 	private String reportGroup;
 
+	@Column(name = "archived", nullable = false)
+	private boolean archived = Boolean.FALSE;
+	
 	public Long getPbfClinicPayeeId() {
 		return pbfClinicPayeeId;
 	}
@@ -72,6 +75,14 @@ public class PBFClinicPayee {
 
 	public void setReportGroup(String reportGroup) {
 		this.reportGroup = reportGroup;
+	}
+
+	public Boolean getArchived() {
+		return archived;
+	}
+
+	public void setArchived(Boolean archived) {
+		this.archived = archived;
 	}
 
 }

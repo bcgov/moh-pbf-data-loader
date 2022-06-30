@@ -6,18 +6,18 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
+import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
 
-public class PurgePBFClinicPayeeTasklet extends PurgeTasklet implements Tasklet {
+public class ArchivePatientRegisterTasklet extends PurgeTasklet implements Tasklet {
 	
 	@Autowired
-	private PBFClinicPayeeRepository pbfClinicPayeeRepository;
+	private PatientRegisterRepository patientRegisterRepository;
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		if (fileExists()) {			
-			pbfClinicPayeeRepository.deleteArchived();			
-		}
+		if (fileExists()) {
+			patientRegisterRepository.archiveAll();	
+		}		
 		return RepeatStatus.FINISHED;
 	}
 

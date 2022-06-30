@@ -1,5 +1,7 @@
 package ca.bc.gov.hlth.pbfdataloader.batch;
 
+import java.net.ConnectException;
+
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -17,7 +19,9 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.transform.FlatFileFormatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +33,8 @@ import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PBFClinicPayeeFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PatientRegisterFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PBFClinicPayeeProcessor;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PatientRegisterProcessor;
+import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.ArchivePBFClinicPayeeTasklet;
+import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.ArchivePatientRegisterTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.DeleteFilesTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgeClientRegisterTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgePBFClinicPayeeTasklet;
@@ -54,26 +60,46 @@ public class BatchConfiguration {
 	
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
+
+	@Value("${batch.chunkSize}")
+	private Integer chunkSize;
+	
+	@Value("${batch.retryLimit}")
+	private Integer retryLimit;
+	
+	@Value("${batch.skipLimit}")
+	private Integer skipLimit;
 	
 	@Bean
-	public Job importJob(JobCompletionNotificationListener listener, Step purgePBFClinicPayee, Step purgeClientRegister, Step writePBFClinicPayee, Step writeClientRegister, Step deleteFiles) {
+	public Job importJob(JobCompletionNotificationListener listener, Step archivePBFClinicPayee, Step archivePatientRegister, Step purgeClientRegister, Step writePBFClinicPayee, Step writeClientRegister, Step purgePBFClinicPayee, Step deleteFiles) {
 	    return jobBuilderFactory.get("importJob")
 	      .incrementer(new RunIdIncrementer())
 	      .listener(listener)
-	      .start(purgePBFClinicPayee)
+	      .start(archivePBFClinicPayee)
+	      .next(archivePatientRegister)
 	      .next(purgeClientRegister)
 	      .next(writePBFClinicPayee)
 	      .next(writeClientRegister)
+	      .next(purgePBFClinicPayee)
 	      .next(deleteFiles)
 	      .build();
 	}
 
 	@Bean
-    public Step purgePBFClinicPayee(Tasklet purgePBFClinicPayeeTasklet) {
-	   	logger.info("Building Step 1 - Purge PBFClinicPayee table");
-	   	// Purge PBFClinicPayee table
-        return stepBuilderFactory.get("Step 1 - purgePBFClinicPayee")
-                .tasklet(purgePBFClinicPayeeTasklet)
+    public Step archivePBFClinicPayee(Tasklet archivePBFClinicPayeeTasklet) {
+	   	logger.info("Building Step 1 - Archive PBFClinicPayee table");
+	   	// Archive PBFClinicPayee table
+        return stepBuilderFactory.get("Step 1 - archivePBFClinicPayee")
+                .tasklet(archivePBFClinicPayeeTasklet)
+                .build();
+    }
+	
+	@Bean
+    public Step archivePatientRegister(Tasklet archivePatientRegisterTasklet) {
+	   	logger.info("Building Step 2 - Archive PatientRegister table");
+	   	// Archive PBFClinicPayee table
+        return stepBuilderFactory.get("Step 2 - archivePatientRegister")
+                .tasklet(archivePatientRegisterTasklet)
                 .build();
     }
    
@@ -95,6 +121,12 @@ public class BatchConfiguration {
 	      .reader(reader)
 	      .processor(pbfClientPayeeProcessor())
 	      .writer(writer)
+	      .faultTolerant()
+	      .retryLimit(retryLimit)
+	      .retry(ConnectException.class)
+	      .skipLimit(skipLimit)
+	      .skip(FlatFileFormatException.class)
+	      .skip(FlatFileParseException.class)
 	      .build();
 	}
 	
@@ -107,9 +139,25 @@ public class BatchConfiguration {
 	      .reader(reader)
 	      .processor(patientRegisterProcessor())
 	      .writer(writer)
+	      .faultTolerant()
+	      .retryLimit(retryLimit)
+	      .retry(ConnectException.class)
+	      .skipLimit(skipLimit)
+	      .skip(FlatFileFormatException.class)
+	      .skip(FlatFileParseException.class)
 	      .build();
 	}
 
+	
+	@Bean
+    public Step purgePBFClinicPayee(Tasklet purgePBFClinicPayeeTasklet) {
+	   	logger.info("Building Step 1 - Purge PBFClinicPayee table");
+	   	// Archive PBFClinicPayee table
+        return stepBuilderFactory.get("Step 1 - archivePBFClinicPayee")
+                .tasklet(purgePBFClinicPayeeTasklet)
+                .build();
+    }
+	
 	@Bean
 	public Step deleteFiles(Tasklet deleteFilesTasklet) {
 	   	logger.info("Building Step 5 - Delete files");
@@ -142,8 +190,7 @@ public class BatchConfiguration {
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()
-	      .names("PHN","PAYENUM","RPRCTNR","EFCTVDT","CNCLDT","SPCLND","RGRSNCD","DRGRSNCD")
-	      //.names("PHN","PAYENUM","RPRCTNR","EFCTVDT","CNCLDT","SPCLND","RGRSNCD","DRGRSNCD", "CNCLRSN")
+	      .names("PHN", "PAYENUM", "RPRCTNR", "EFCTVDT", "CNCLDT", "SPCLND", "RGRSNCD", "DRGRSNCD", "CNCLRSN")
 	      .fieldSetMapper(new PatientRegisterFieldSetMapper())
 	      .build();
 	}
@@ -166,6 +213,22 @@ public class BatchConfiguration {
 	@Bean
 	public PatientRegisterProcessor patientRegisterProcessor() {
 	    return new PatientRegisterProcessor();
+	}
+	
+	@StepScope
+	@Bean
+	public ArchivePBFClinicPayeeTasklet archivePBFClinicPayeeTasklet(@Value("#{jobParameters['tpcpyFile']}") String input) {
+		ArchivePBFClinicPayeeTasklet tasklet = new ArchivePBFClinicPayeeTasklet();
+		tasklet.setInputFile(input);
+		return tasklet;
+	}
+	
+	@StepScope
+	@Bean
+	public ArchivePatientRegisterTasklet archivePatientRegisterTasklet(@Value("#{jobParameters['tpcrtFile']}") String input) {
+		ArchivePatientRegisterTasklet tasklet = new ArchivePatientRegisterTasklet();
+		tasklet.setInputFile(input);
+		return tasklet;
 	}
 	
 	@StepScope

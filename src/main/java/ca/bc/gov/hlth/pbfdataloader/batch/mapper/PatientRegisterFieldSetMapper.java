@@ -10,6 +10,8 @@ import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
 public class PatientRegisterFieldSetMapper implements FieldSetMapper<PatientRegister>{
 	
 	private static final String PBF_DATE_FORMAT = "yyyy-MM-dd";
+	
+	private static final String CANCEL_REASON_Q = "Q";
 
 	@Override
 	public PatientRegister mapFieldSet(FieldSet fieldSet) throws BindException {
@@ -23,7 +25,8 @@ public class PatientRegisterFieldSetMapper implements FieldSetMapper<PatientRegi
 		patientRegister.setAdministrativeCode(fieldSet.readString("SPCLND"));
 		patientRegister.setRegistrationReasonCode(StringUtils.trimToNull(fieldSet.readString("RGRSNCD")));
 		patientRegister.setDeregistrationReasonCode(StringUtils.trimToNull(fieldSet.readString("DRGRSNCD")));
-//		patientRegister.setCancelReasonCode(fieldSet.readString("CNCLRSN"));
+		// Values of CNCLRSN=’Q’ should be ignored/blanked
+		patientRegister.setCancelReasonCode(StringUtils.remove(fieldSet.readString("CNCLRSN"), CANCEL_REASON_Q));
 
 		return patientRegister;
 	}

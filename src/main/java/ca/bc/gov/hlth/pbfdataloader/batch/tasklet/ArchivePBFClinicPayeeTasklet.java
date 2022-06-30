@@ -8,15 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 
-public class PurgePBFClinicPayeeTasklet extends PurgeTasklet implements Tasklet {
+public class ArchivePBFClinicPayeeTasklet extends PurgeTasklet implements Tasklet {
 	
 	@Autowired
 	private PBFClinicPayeeRepository pbfClinicPayeeRepository;
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-		if (fileExists()) {			
-			pbfClinicPayeeRepository.deleteArchived();			
+		if (fileExists()) {
+			pbfClinicPayeeRepository.archiveAll();			
 		}
 		return RepeatStatus.FINISHED;
 	}

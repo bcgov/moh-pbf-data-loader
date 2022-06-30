@@ -49,6 +49,9 @@ public class PatientRegister {
 	@Column(name = "cancel_reason_code", nullable = true)
 	private String cancelReasonCode;
 
+	@Column(name = "archived", nullable = false)
+	private Boolean archived = Boolean.FALSE;
+
 	public Long getPatientRegisterId() {
 		return patientRegisterId;
 	}
@@ -127,6 +130,14 @@ public class PatientRegister {
 
 	public void setCancelReasonCode(String cancelReasonCode) {
 		this.cancelReasonCode = cancelReasonCode;
+	}
+
+	public Boolean getArchived() {
+		return archived;
+	}
+
+	public void setArchived(Boolean archived) {
+		this.archived = archived;
 	}
 
 }

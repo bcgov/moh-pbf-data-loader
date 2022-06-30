@@ -13,9 +13,12 @@ spring:
 # Cron schedule
 batch:
   cron: 0 */5 * * * *
+  chunkSize: 10
+  retryLimit: 2
+  skipLimit: 5
   
 # Input files
 file:
   input:
-    tpcrt: c:/pbf/test/MSP_TPCPRT_VW.csv
-    tpcpy: c:/pbf/test/MSP_TPCPY_VW.csv
+    tpcprt: 
+    tpcpy: 
