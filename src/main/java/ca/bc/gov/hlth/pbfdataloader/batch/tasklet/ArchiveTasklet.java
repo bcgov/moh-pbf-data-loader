@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
 
-public class PurgeTasklet implements Tasklet {
-	
+public class ArchiveTasklet implements Tasklet {
+
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
 
@@ -26,14 +26,14 @@ public class PurgeTasklet implements Tasklet {
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 		if (new File(tpcpyFile).exists()) {
-			pbfClinicPayeeRepository.deleteArchived();
+			pbfClinicPayeeRepository.archiveAll();
 		}
 		if (new File(tpcprtFile).exists()) {
-			patientRegisterRepository.deleteArchived();
+			patientRegisterRepository.archiveAll();
 		}
 		return RepeatStatus.FINISHED;
 	}
-	
+
 	public String getTpcprtFile() {
 		return tpcprtFile;
 	}
@@ -49,4 +49,5 @@ public class PurgeTasklet implements Tasklet {
 	public void setTpcpyFile(String tpcpyFile) {
 		this.tpcpyFile = tpcpyFile;
 	}
+
 }
