@@ -16,7 +16,7 @@ public class PBFClinicPayeeFieldSetMapper implements FieldSetMapper<PBFClinicPay
 		PBFClinicPayee payee = new PBFClinicPayee();
 		payee.setPayeeNumber(fieldSet.readString("PAYENUM"));
 		payee.setEffectiveDate(fieldSet.readDate("EFCTVDT", PBF_DATE_FORMAT));
-		payee.setCancelDate(fieldSet.readDate("EFCTVDT", PBF_DATE_FORMAT));
+		payee.setCancelDate(fieldSet.readDate("CNCLDT", PBF_DATE_FORMAT));
 		payee.setReportGroup(fieldSet.readString("RPTGRP"));
 
 		return payee;
