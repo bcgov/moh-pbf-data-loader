@@ -2,8 +2,6 @@ package ca.bc.gov.hlth.pbfdataloader.batch;
 
 import java.net.ConnectException;
 
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -58,9 +56,6 @@ public class BatchConfiguration {
 	
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
-
-	@Value("${batch.chunkSize}")
-	private Integer chunkSize;
 	
 	@Value("${batch.retryLimit}")
 	private Integer retryLimit;
@@ -160,9 +155,9 @@ public class BatchConfiguration {
 
 	@StepScope
 	@Bean
-	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobParameters['tpcrtFile']}") String input) {
+	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobParameters['tpcprtFile']}") String input) {
 		
-	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcrtItemReader")
+	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcprtItemReader")
 	      .resource(new FileSystemResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
@@ -173,12 +168,12 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-	public RepositoryItemWriter<PBFClinicPayee> pbfClientPayeeWriter(DataSource dataSource) {
+	public RepositoryItemWriter<PBFClinicPayee> pbfClientPayeeWriter() {
 		return new RepositoryItemWriterBuilder<PBFClinicPayee>().repository(pbfClinicPayeeRepository).build();
 	}
 	
 	@Bean
-	public RepositoryItemWriter<PatientRegister> patientRegisterWriter(DataSource dataSource) {
+	public RepositoryItemWriter<PatientRegister> patientRegisterWriter() {
 		return new RepositoryItemWriterBuilder<PatientRegister>().repository(patientRegisterRepository).build();
 	}
 	
@@ -194,29 +189,29 @@ public class BatchConfiguration {
 	
 	@StepScope
 	@Bean
-	public ArchiveTasklet archiveTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
+	public ArchiveTasklet archiveTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
 		ArchiveTasklet tasklet = new ArchiveTasklet();
 		tasklet.setTpcpyFile(tpcpyFile);
-		tasklet.setTpcprtFile(tpcrtFile);
+		tasklet.setTpcprtFile(tpcprtFile);
 		return tasklet;
 	}
 	
 	@StepScope
 	@Bean
-	public PurgeTasklet purgeTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
+	public PurgeTasklet purgeTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
 		PurgeTasklet tasklet = new PurgeTasklet();
 		tasklet.setTpcpyFile(tpcpyFile);
-		tasklet.setTpcprtFile(tpcrtFile);
+		tasklet.setTpcprtFile(tpcprtFile);
 		return tasklet;
 	}
 
 	
 	@StepScope
 	@Bean
-	public DeleteFilesTasklet deleteFilesTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
+	public DeleteFilesTasklet deleteFilesTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
 		DeleteFilesTasklet tasklet = new DeleteFilesTasklet();
 		tasklet.getFiles().add(tpcpyFile);
-		tasklet.getFiles().add(tpcrtFile);
+		tasklet.getFiles().add(tpcprtFile);
 		return tasklet;
 	}
 	

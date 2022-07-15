@@ -24,7 +24,7 @@ public class PurgeTasklet implements Tasklet {
 	private String tpcpyFile;
 
 	@Override
-	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 		if (new File(tpcpyFile).exists()) {
 			pbfClinicPayeeRepository.deleteArchived();
 		}

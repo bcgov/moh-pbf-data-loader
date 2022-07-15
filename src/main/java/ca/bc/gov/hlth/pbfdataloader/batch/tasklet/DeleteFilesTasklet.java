@@ -19,7 +19,7 @@ public class DeleteFilesTasklet implements Tasklet {
 	private List<String> files = new ArrayList<>();
 
 	@Override
-	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 		files.forEach(file -> {
 			try {
 				Files.deleteIfExists(Paths.get(file));

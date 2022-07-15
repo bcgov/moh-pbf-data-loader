@@ -7,7 +7,7 @@ import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
 public class PatientRegisterProcessor implements ItemProcessor<PatientRegister, PatientRegister> {
 
 	@Override
-	public PatientRegister process(PatientRegister patientRegister) throws Exception {
+	public PatientRegister process(PatientRegister patientRegister) {
 		// No additional processing is required
 		return patientRegister;
 	}

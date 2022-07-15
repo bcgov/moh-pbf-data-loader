@@ -36,7 +36,7 @@ public class BatchScheduler {
 	public void schedule() throws Exception {
 		logger.info("Running job");
 		JobParameters params = new JobParametersBuilder()
-				.addString("tpcrtFile", tpcprtFile)
+				.addString("tpcprtFile", tpcprtFile)
 				.addString("tpcpyFile", tpcpyFile)
 				.addDate("date", new Date())
 				.toJobParameters();

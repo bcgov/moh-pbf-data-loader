@@ -14,7 +14,7 @@ public class PatientRegisterFieldSetMapper implements FieldSetMapper<PatientRegi
 	private static final String CANCEL_REASON_Q = "Q";
 
 	@Override
-	public PatientRegister mapFieldSet(FieldSet fieldSet) throws BindException {
+	public PatientRegister mapFieldSet(FieldSet fieldSet) {
 		
 		PatientRegister patientRegister = new PatientRegister();
 		patientRegister.setPhn(fieldSet.readString("PHN"));
