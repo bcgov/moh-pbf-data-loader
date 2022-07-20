@@ -17,4 +17,12 @@ public interface PatientRegisterRepository extends CrudRepository<PatientRegiste
 	@Query(value = "DELETE FROM PatientRegister WHERE archived = true")
     @Modifying
 	void deleteArchived();
+	
+	@Query(value = "UPDATE PatientRegister SET archived = false WHERE archived = true")
+    @Modifying
+	void restoreArchived();
+	
+	@Query(value = "DELETE FROM PatientRegister WHERE archived = false")
+    @Modifying
+	void deleteNew();
 }

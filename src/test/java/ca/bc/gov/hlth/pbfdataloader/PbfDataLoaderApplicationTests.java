@@ -58,9 +58,7 @@ class PbfDataLoaderApplicationTests {
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
-		
-		// Validate that the tables are archived
-		
+
 		// Check the record count
 		Assertions.assertEquals(43, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(346, patientRegisterRepository.count());
@@ -92,9 +90,7 @@ class PbfDataLoaderApplicationTests {
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
-		
-		// Validate that the tables are purged
-		
+
 		// Check the record count. One record failed for each
 		Assertions.assertEquals(42, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(345, patientRegisterRepository.count());
@@ -127,11 +123,9 @@ class PbfDataLoaderApplicationTests {
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
 		
-		// Validate that the tables are purged
-		
 		// Check the record count. Should be rolled back to original data
-//		assertEquals(20, pbfClinicPayeeRepository.count());
-//		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Validate that the files aren't deleted
 		Assertions.assertTrue(tpcprtFile.exists());
@@ -160,12 +154,10 @@ class PbfDataLoaderApplicationTests {
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
-		
-		// Validate that the tables are purged
-		
+
 		// Check the record count. Should be rolled back to original data
-//		assertEquals(20, pbfClinicPayeeRepository.count());
-//		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Validate that the files aren't deleted
 		Assertions.assertTrue(tpcprtFile.exists());
