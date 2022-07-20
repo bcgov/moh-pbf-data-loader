@@ -1,7 +1,5 @@
 package ca.bc.gov.hlth.pbfdataloader.persistence.repository;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -19,7 +17,13 @@ public interface PBFClinicPayeeRepository extends CrudRepository<PBFClinicPayee,
 	@Query(value = "DELETE FROM PBFClinicPayee WHERE archived = true")
     @Modifying
 	void deleteArchived();
+
+	@Query(value = "UPDATE PBFClinicPayee SET archived = false WHERE archived = true")
+    @Modifying
+	void restoreArchived();
 	
-	List<PBFClinicPayee> findByArchived(Boolean archived);
+	@Query(value = "DELETE FROM PBFClinicPayee WHERE archived = false")
+    @Modifying
+	void deleteNew();
 	
 }

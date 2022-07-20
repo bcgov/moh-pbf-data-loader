@@ -1,9 +1,5 @@
 package ca.bc.gov.hlth.pbfdataloader;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -11,6 +7,7 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -49,32 +46,30 @@ class PbfDataLoaderApplicationTests {
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.csv");
 		
 		// Validate initial data
-		assertEquals(20, pbfClinicPayeeRepository.count());
-		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Verify that our inputFile exists and is not empty
-		assertTrue(tpcprtFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
-		
-		assertTrue(tpcpyFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
+
+		Assertions.assertTrue(tpcpyFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
-		
-		// Validate that the tables are archived
-		
+
 		// Check the record count
-		assertEquals(43, pbfClinicPayeeRepository.count());
-		assertEquals(346, patientRegisterRepository.count());
+		Assertions.assertEquals(43, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(346, patientRegisterRepository.count());
 		
 		// Validate that the files are deleted
-		assertFalse(tpcprtFile.exists());
-		assertFalse(tpcpyFile.exists());
+		Assertions.assertFalse(tpcprtFile.exists());
+		Assertions.assertFalse(tpcpyFile.exists());
 		
 		// Check job status
-		assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
-	    assertEquals(ExitStatus.COMPLETED, exitStatus);
+		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
+		Assertions.assertEquals(ExitStatus.COMPLETED, exitStatus);
 	}
 	
 	@Test
@@ -83,32 +78,30 @@ class PbfDataLoaderApplicationTests {
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW_one_invalid.csv");
 		
 		// Validate initial data
-		assertEquals(20, pbfClinicPayeeRepository.count());
-		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Verify that our inputFile exists and is not empty
-		assertTrue(tpcprtFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
-		
-		assertTrue(tpcpyFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
+
+		Assertions.assertTrue(tpcpyFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
-		
-		// Validate that the tables are purged
-		
+
 		// Check the record count. One record failed for each
-		assertEquals(42, pbfClinicPayeeRepository.count());
-		assertEquals(345, patientRegisterRepository.count());
+		Assertions.assertEquals(42, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(345, patientRegisterRepository.count());
 		
 		// Validate that the files are deleted
-		assertFalse(tpcprtFile.exists());
-		assertFalse(tpcpyFile.exists());
+		Assertions.assertFalse(tpcprtFile.exists());
+		Assertions.assertFalse(tpcpyFile.exists());
 		
 		// Check job status
-		assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
-	    assertEquals(ExitStatus.COMPLETED, exitStatus);
+		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
+		Assertions.assertEquals(ExitStatus.COMPLETED, exitStatus);
 	}
 	
 	@Test
@@ -117,32 +110,30 @@ class PbfDataLoaderApplicationTests {
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW_ten_invalid.csv");
 		
 		// Validate initial data
-		assertEquals(20, pbfClinicPayeeRepository.count());
-		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Verify that our inputFile exists and is not empty
-		assertTrue(tpcprtFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
-		
-		assertTrue(tpcpyFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
+
+		Assertions.assertTrue(tpcpyFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
 		
-		// Validate that the tables are purged
-		
 		// Check the record count. Should be rolled back to original data
-//		assertEquals(20, pbfClinicPayeeRepository.count());
-//		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Validate that the files aren't deleted
-		assertTrue(tpcprtFile.exists());
-		assertTrue(tpcpyFile.exists());
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(tpcpyFile.exists());
 		
 		// Check job status
-		assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
-	    assertEquals(ExitStatus.FAILED.getExitCode(), exitStatus.getExitCode());
+		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
+		Assertions.assertEquals(ExitStatus.FAILED.getExitCode(), exitStatus.getExitCode());
 	}
 	
 	@Test
@@ -151,32 +142,30 @@ class PbfDataLoaderApplicationTests {
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.csv");
 		
 		// Validate initial data
-		assertEquals(20, pbfClinicPayeeRepository.count());
-		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Verify that our inputFile exists and is not empty
-		assertTrue(tpcprtFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
-		
-		assertTrue(tpcpyFile.exists());
-		assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
+
+		Assertions.assertTrue(tpcpyFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
-		
-		// Validate that the tables are purged
-		
+
 		// Check the record count. Should be rolled back to original data
-//		assertEquals(20, pbfClinicPayeeRepository.count());
-//		assertEquals(100, patientRegisterRepository.count());
+		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
+		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Validate that the files aren't deleted
-		assertTrue(tpcprtFile.exists());
-		assertTrue(tpcpyFile.exists());
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(tpcpyFile.exists());
 		
 		// Check job status
-		assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
-	    assertEquals(ExitStatus.FAILED.getExitCode(), exitStatus.getExitCode());
+		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
+		Assertions.assertEquals(ExitStatus.FAILED.getExitCode(), exitStatus.getExitCode());
 	}
 	
 	private static File createTempFile(String inputFileName) throws IOException {
@@ -191,10 +180,10 @@ class PbfDataLoaderApplicationTests {
 		return tempFile;
 	}
 	
-    private JobParameters defaultJobParameters(File tpcpyFile, File tpcrtFile) throws IOException {
+    private JobParameters defaultJobParameters(File tpcpyFile, File tpcprtFile) {
 		return new JobParametersBuilder()
 				.addString("tpcpyFile", tpcpyFile.getPath())
-				.addString("tpcrtFile", tpcrtFile.getPath())
+				.addString("tpcprtFile", tpcprtFile.getPath())
 				.addDate("date", new Date())
 				.toJobParameters();
 	}

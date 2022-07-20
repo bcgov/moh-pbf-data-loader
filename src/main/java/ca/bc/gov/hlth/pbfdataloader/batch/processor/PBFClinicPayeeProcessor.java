@@ -7,7 +7,7 @@ import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
 public class PBFClinicPayeeProcessor implements ItemProcessor<PBFClinicPayee, PBFClinicPayee> {
 
 	@Override
-	public PBFClinicPayee process(PBFClinicPayee payee) throws Exception {
+	public PBFClinicPayee process(PBFClinicPayee payee) {
 		// No additional processing is required
 		return payee;
 	}

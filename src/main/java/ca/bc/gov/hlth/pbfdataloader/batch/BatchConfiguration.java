@@ -2,8 +2,6 @@ package ca.bc.gov.hlth.pbfdataloader.batch;
 
 import java.net.ConnectException;
 
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -22,13 +20,15 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.transform.FlatFileFormatException;
+import org.springframework.batch.repeat.CompletionPolicy;
+import org.springframework.batch.repeat.policy.SimpleCompletionPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
-import ca.bc.gov.hlth.pbfdataloader.batch.listener.JobCompletionNotificationListener;
+import ca.bc.gov.hlth.pbfdataloader.batch.listener.JobExecutionListener;
 import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PBFClinicPayeeFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PatientRegisterFieldSetMapper;
 import ca.bc.gov.hlth.pbfdataloader.batch.processor.PBFClinicPayeeProcessor;
@@ -58,9 +58,6 @@ public class BatchConfiguration {
 	
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
-
-	@Value("${batch.chunkSize}")
-	private Integer chunkSize;
 	
 	@Value("${batch.retryLimit}")
 	private Integer retryLimit;
@@ -69,7 +66,7 @@ public class BatchConfiguration {
 	private Integer skipLimit;
 	
 	@Bean
-	public Job importJob(JobCompletionNotificationListener listener, Step archive, Step writePBFClinicPayee, Step writeClientRegister, Step purge, Step deleteFiles) {
+	public Job importJob(JobExecutionListener listener, Step archive, Step writePBFClinicPayee, Step writeClientRegister, Step purge, Step deleteFiles) {
 	    return jobBuilderFactory.get("importJob")
 	      .incrementer(new RunIdIncrementer())
 	      .listener(listener)
@@ -94,7 +91,7 @@ public class BatchConfiguration {
 		logger.info("Building Step 2 - Load the PBFClinicPayee data");
 		// Load the PBFClinicPayee data
 	    return stepBuilderFactory.get("Step 2 - writePBFClinicPayee")
-	      .<PBFClinicPayee, PBFClinicPayee> chunk(10)
+	      .<PBFClinicPayee, PBFClinicPayee> chunk(completionPolicy())
 	      .reader(reader)
 	      .processor(pbfClientPayeeProcessor())
 	      .writer(writer)
@@ -112,7 +109,7 @@ public class BatchConfiguration {
 		logger.info("Building Step 3 - Load the PatientRegister data");
 		// Load the PatientRegister data
 	    return stepBuilderFactory.get("Step 3 - writeClientRegister")
-	      .<PatientRegister, PatientRegister> chunk(10)
+	      .<PatientRegister, PatientRegister> chunk(completionPolicy())
 	      .reader(reader)
 	      .processor(patientRegisterProcessor())
 	      .writer(writer)
@@ -160,9 +157,9 @@ public class BatchConfiguration {
 
 	@StepScope
 	@Bean
-	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobParameters['tpcrtFile']}") String input) {
+	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobParameters['tpcprtFile']}") String input) {
 		
-	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcrtItemReader")
+	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcprtItemReader")
 	      .resource(new FileSystemResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
@@ -173,12 +170,12 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-	public RepositoryItemWriter<PBFClinicPayee> pbfClientPayeeWriter(DataSource dataSource) {
+	public RepositoryItemWriter<PBFClinicPayee> pbfClientPayeeWriter() {
 		return new RepositoryItemWriterBuilder<PBFClinicPayee>().repository(pbfClinicPayeeRepository).build();
 	}
 	
 	@Bean
-	public RepositoryItemWriter<PatientRegister> patientRegisterWriter(DataSource dataSource) {
+	public RepositoryItemWriter<PatientRegister> patientRegisterWriter() {
 		return new RepositoryItemWriterBuilder<PatientRegister>().repository(patientRegisterRepository).build();
 	}
 	
@@ -194,30 +191,40 @@ public class BatchConfiguration {
 	
 	@StepScope
 	@Bean
-	public ArchiveTasklet archiveTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
+	public ArchiveTasklet archiveTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
 		ArchiveTasklet tasklet = new ArchiveTasklet();
 		tasklet.setTpcpyFile(tpcpyFile);
-		tasklet.setTpcprtFile(tpcrtFile);
+		tasklet.setTpcprtFile(tpcprtFile);
 		return tasklet;
 	}
 	
 	@StepScope
 	@Bean
-	public PurgeTasklet purgeTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
+	public PurgeTasklet purgeTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
 		PurgeTasklet tasklet = new PurgeTasklet();
 		tasklet.setTpcpyFile(tpcpyFile);
-		tasklet.setTpcprtFile(tpcrtFile);
+		tasklet.setTpcprtFile(tpcprtFile);
 		return tasklet;
 	}
 
 	
 	@StepScope
 	@Bean
-	public DeleteFilesTasklet deleteFilesTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcrtFile']}") String tpcrtFile) {
+	public DeleteFilesTasklet deleteFilesTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
 		DeleteFilesTasklet tasklet = new DeleteFilesTasklet();
 		tasklet.getFiles().add(tpcpyFile);
-		tasklet.getFiles().add(tpcrtFile);
+		tasklet.getFiles().add(tpcprtFile);
 		return tasklet;
+	}
+	
+	@StepScope
+	@Bean
+	public CompletionPolicy completionPolicy() {
+		// Set an arbitrarily large limit since we don't actually want to chunk
+		// up the file since we want the whole file processed or not
+		// Alternatively we should be using Tasklets instead of chunks
+		// but we lose the ease of file reading/processing/writing
+		return new SimpleCompletionPolicy(99999);
 	}
 	
 }
