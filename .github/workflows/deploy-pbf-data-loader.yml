@@ -119,7 +119,7 @@ jobs:
 
       - name: Compute Version image
         run: |
-          echo "VERSION=${{ env.VERSION_PREFIX }}${{ github.event.inputs.Branch }}_${{ github.event.inputs.Release }}"  | tee -a $GITHUB_ENV
+          echo "VERSION=${{ env.VERSION_PREFIX }}${{ github.event.inputs.Branch }}-${{ github.event.inputs.Release }}"  | tee -a $GITHUB_ENV
 
       - name: Find image
         run: |
