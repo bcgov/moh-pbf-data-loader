@@ -126,7 +126,7 @@ jobs:
         with:
           ssh-key: ${{ secrets.GITOPS_C5839F_PRIVATE_KEY }}
           repository: bcgov-c/tenant-gitops-c5839f
-          ref: 7127-create-env
+          ref: main
       
 
       - name: Set up Kustomize
