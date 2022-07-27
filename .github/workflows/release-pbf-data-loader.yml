@@ -31,6 +31,10 @@ on:
         description: 'Optional parameter for additional tags on released images. '
         required: false
         default:
+      branch:
+        description: "Enter branch name (defaults to main):"
+        required: true
+        default: main        
 
 jobs:
   # This job runs the maven commands to compile code and build package.
@@ -52,14 +56,14 @@ jobs:
         id: checkout
         uses: actions/checkout@v3
         with:
-          ref: 7127-create-env
+          ref: ${{ github.event.inputs.branch }}
 
 
       # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution> 
       - name: Determine Version number
         # Branch name is fixed to 'main' in version identifier
         run: |
-          echo "RELEASE_VERSION=Release-1.0-${{github.ref_name}}-${{github.run_number}}" | tee -a $GITHUB_ENV
+          echo "RELEASE_VERSION=Release-1.0-${{ github.event.inputs.branch}}-${{github.run_number}}" | tee -a $GITHUB_ENV
           echo "COMMIT_SHA=${GITHUB_SHA}" | tee -a $GITHUB_ENV
         
       # 2. Determine tags for OpenShift image
