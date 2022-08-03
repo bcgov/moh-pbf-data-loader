@@ -35,7 +35,7 @@ on:
       Branch:
         description: "Enter branch name"
         required: true
-        default: 7127-create-env
+        default: main
       Release:
         description: "Enter build number"
         required: true

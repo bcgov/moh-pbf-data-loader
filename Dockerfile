@@ -10,15 +10,12 @@ RUN mvn -f /home/app/pom.xml clean install
 
 FROM adoptopenjdk:11-jre-hotspot
 
-#Setting env variable. This is used for location of external properties
-ENV PBF-DATA-LOADER_HOME=/tmp
-
 #Setting the work dir as tmp coz
 WORKDIR /tmp
 
-#Copy hns-esb jar from target folder
+#Copy pbf-data-loader jar from target folder
 COPY --from=build-stage /home/app/target/*.jar /tmp/pbf-data-loader.jar
 
 
-#Start HNI-ESB
+#Start PBF Data Loader
 CMD ["java","-jar","pbf-data-loader.jar"]

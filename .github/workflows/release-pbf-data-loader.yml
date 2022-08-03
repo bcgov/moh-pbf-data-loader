@@ -1,12 +1,12 @@
-# This is multi job workflow that builds the image, deploy that image in OpenShift dev environment and creates a tag in gihub repository.
+# This is multi job workflow that builds the image, deploys that image in OpenShift dev environment and creates a tag in gihub repository.
 # This workflow is triggered manually and performs following activities:
 # 1. Determine the version number tag i.e. Release_1.0_<branch-name>_<build execution>  
 # 2. Determine tags for OpenShift image
 # 3. Run the maven install for building code
-# 5. Run the docker file to create image
-# 6. Push the image to OpenShift repository
-# 7. Deploy the image in Dev environment
-# 8. Create a tag for git repository
+# 4. Run the docker file to create image
+# 5. Push the image to OpenShift repository
+# 6. Deploy the image in Dev environment
+# 7. Create a tag for git repository
 
 
 name: release-pbf-data-loader
@@ -73,7 +73,7 @@ jobs:
 
       # Build from docker file
       - name: Build pbf-data-loader image from Dockerfile
-        id: build-docker-hniesb
+        id: build-docker-pbfdataloader
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
@@ -87,8 +87,8 @@ jobs:
         id: push-image
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ steps.build-docker-hniesb.outputs.image }}
-          tags: ${{ steps.build-docker-hniesb.outputs.tags }}
+          image: ${{ steps.build-docker-pbfdataloader.outputs.image }}
+          tags: ${{ steps.build-docker-pbfdataloader.outputs.tags }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
           password: ${{ env.OPENSHIFT_TOKEN }}
@@ -103,9 +103,9 @@ jobs:
     steps:
       - name: Step to move image to dev namespace
         run: |
-          echo "This step should move the image to repository to test namespace"
+          echo "This step should move the image to repository to dev namespace"
 
-      # 1. Login to OpenShift
+      # Login to OpenShift
       - name: Log in to OpenShift
         uses: redhat-actions/oc-login@v1
         with:
@@ -114,12 +114,11 @@ jobs:
           insecure_skip_tls_verify: true
           namespace: ${{ env.DEFAULT_NAMESPACE }}
 
-      # 4. Push the image to selected repository
+      # Push the image to selected repository
       - name: Push Image to dev 
         run: |
           oc tag ${{env.DEFAULT_NAMESPACE}}/${{env.IMAGE_NAME}}@${{needs.createPbfDataLoaderRelease.outputs.OPENSHIFT_IMAGE_SHA}} ${{env.DEV_NAMESPACE}}/${{env.IMAGE_NAME}}:${{needs.createPbfDataLoaderRelease.outputs.RELEASE_VERSION}}
           
-      
       - name: Prepare deploy key
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -160,9 +159,7 @@ jobs:
         with:
           ref: 7127-create-env
 
-    # Tag and push the tag
-          # git fetch --all
-          # git pull
+      # Tag and push the tag
       - name: Tag the commit with Release number
         id: tag
         run: |
