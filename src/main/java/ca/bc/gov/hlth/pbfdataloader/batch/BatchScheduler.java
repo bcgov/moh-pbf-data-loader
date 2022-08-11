@@ -26,10 +26,10 @@ public class BatchScheduler {
 	@Autowired
 	private Job importJob;
 	
-	@Value("${file.input.tpcprt}")
+	@Value("${sftp.file.tpcprt}")
 	private String tpcprtFile;
 	
-	@Value("${file.input.tpcpy}")
+	@Value("${sftp.file.tpcpy}")
 	private String tpcpyFile;
 
 	@Scheduled(cron = "${batch.cron}")

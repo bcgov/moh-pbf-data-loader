@@ -36,10 +36,12 @@ import ca.bc.gov.hlth.pbfdataloader.batch.processor.PatientRegisterProcessor;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.ArchiveTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.DeleteFilesTasklet;
 import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.PurgeTasklet;
+import ca.bc.gov.hlth.pbfdataloader.batch.tasklet.SFTPGetTasklet;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
+import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
 
 @Configuration
 @EnableBatchProcessing
@@ -59,6 +61,9 @@ public class BatchConfiguration {
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
 	
+	@Autowired
+	private SFTPService sftpService;
+	
 	@Value("${batch.retryLimit}")
 	private Integer retryLimit;
 	
@@ -66,31 +71,40 @@ public class BatchConfiguration {
 	private Integer skipLimit;
 	
 	@Bean
-	public Job importJob(JobExecutionListener listener, Step archive, Step writePBFClinicPayee, Step writeClientRegister, Step purge, Step deleteFiles) {
+	public Job importJob(JobExecutionListener listener, Step sftpGet, Step archive, Step writePBFClinicPayee, Step writeClientRegister, Step purge, Step deleteFiles) {
 	    return jobBuilderFactory.get("importJob")
 	      .incrementer(new RunIdIncrementer())
 	      .listener(listener)
-	      .start(archive)
+	      .start(sftpGet)
+	      .next(archive)
 	      .next(writePBFClinicPayee)
 	      .next(writeClientRegister)
 	      .next(purge)
 	      .next(deleteFiles)
 	      .build();
 	}
+	
+	@Bean
+	public Step sftpGet(Tasklet sftpGetTasklet) {
+		logger.info("Building Step 1 - Archive tables");
+        return stepBuilderFactory.get("Step 1 - sftpGet")
+                .tasklet(sftpGetTasklet)
+                .build();
+	}
 
 	@Bean
     public Step archive(Tasklet archiveTasklet) {
-	   	logger.info("Building Step 1 - Archive tables");
-        return stepBuilderFactory.get("Step 1 - archive")
+	   	logger.info("Building Step 2 - Archive tables");
+        return stepBuilderFactory.get("Step 2 - archive")
                 .tasklet(archiveTasklet)
                 .build();
     }
 
 	@Bean
 	public Step writePBFClinicPayee(ItemReader<PBFClinicPayee> reader, ItemWriter<PBFClinicPayee> writer) {
-		logger.info("Building Step 2 - Load the PBFClinicPayee data");
+		logger.info("Building Step 3 - Load the PBFClinicPayee data");
 		// Load the PBFClinicPayee data
-	    return stepBuilderFactory.get("Step 2 - writePBFClinicPayee")
+	    return stepBuilderFactory.get("Step 3 - writePBFClinicPayee")
 	      .<PBFClinicPayee, PBFClinicPayee> chunk(completionPolicy())
 	      .reader(reader)
 	      .processor(pbfClientPayeeProcessor())
@@ -106,9 +120,9 @@ public class BatchConfiguration {
 	
 	@Bean
 	public Step writeClientRegister(ItemReader<PatientRegister> reader, ItemWriter<PatientRegister> writer) {
-		logger.info("Building Step 3 - Load the PatientRegister data");
+		logger.info("Building Step 4 - Load the PatientRegister data");
 		// Load the PatientRegister data
-	    return stepBuilderFactory.get("Step 3 - writeClientRegister")
+	    return stepBuilderFactory.get("Step 4 - writeClientRegister")
 	      .<PatientRegister, PatientRegister> chunk(completionPolicy())
 	      .reader(reader)
 	      .processor(patientRegisterProcessor())
@@ -125,25 +139,25 @@ public class BatchConfiguration {
 	
 	@Bean
     public Step purge(Tasklet purgeTasklet) {
-	   	logger.info("Building Step 4 - Purge tables");
+	   	logger.info("Building Step 5 - Purge tables");
 	   	// Purge tables
-        return stepBuilderFactory.get("Step 4 - purge")
+        return stepBuilderFactory.get("Step 5 - purge")
                 .tasklet(purgeTasklet)
                 .build();
     }
 	
 	@Bean
 	public Step deleteFiles(Tasklet deleteFilesTasklet) {
-	   	logger.info("Building Step 5 - Delete files");
+	   	logger.info("Building Step 6 - Delete files");
 	   	// Purge PBFClinicPayee table
-        return stepBuilderFactory.get("deleteFiles")
+        return stepBuilderFactory.get("Step 6 = deleteFiles")
                 .tasklet(deleteFilesTasklet)
                 .build();
 	}
 
 	@StepScope
 	@Bean
-	public FlatFileItemReader<PBFClinicPayee> pbfClientPayeeReader(@Value("#{jobParameters['tpcpyFile']}") String input) {
+	public FlatFileItemReader<PBFClinicPayee> pbfClientPayeeReader(@Value("#{jobExecutionContext['tpcpyTempFile']}") String input) {
 		
 	    return new FlatFileItemReaderBuilder<PBFClinicPayee>().name("tpcpyItemReader")
 	      .resource(new FileSystemResource(input))
@@ -157,10 +171,10 @@ public class BatchConfiguration {
 
 	@StepScope
 	@Bean
-	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobParameters['tpcprtFile']}") String input) {
+	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobExecutionContext['tpcprtTempFile']}") String input) {
 		
 	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcprtItemReader")
-	      .resource(new FileSystemResource(input))
+	      .resource(sftpService.getAsResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()
@@ -191,30 +205,27 @@ public class BatchConfiguration {
 	
 	@StepScope
 	@Bean
-	public ArchiveTasklet archiveTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
-		ArchiveTasklet tasklet = new ArchiveTasklet();
-		tasklet.setTpcpyFile(tpcpyFile);
-		tasklet.setTpcprtFile(tpcprtFile);
-		return tasklet;
+	public SFTPGetTasklet sftpGetTasklet() {
+		return new SFTPGetTasklet();
 	}
 	
 	@StepScope
 	@Bean
-	public PurgeTasklet purgeTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
-		PurgeTasklet tasklet = new PurgeTasklet();
-		tasklet.setTpcpyFile(tpcpyFile);
-		tasklet.setTpcprtFile(tpcprtFile);
-		return tasklet;
+	public ArchiveTasklet archiveTasklet() {
+		return new ArchiveTasklet();
+	}
+	
+	@StepScope
+	@Bean
+	public PurgeTasklet purgeTasklet() {
+		return new PurgeTasklet();
 	}
 
 	
 	@StepScope
 	@Bean
-	public DeleteFilesTasklet deleteFilesTasklet(@Value("#{jobParameters['tpcpyFile']}") String tpcpyFile, @Value("#{jobParameters['tpcprtFile']}") String tpcprtFile) {
-		DeleteFilesTasklet tasklet = new DeleteFilesTasklet();
-		tasklet.getFiles().add(tpcpyFile);
-		tasklet.getFiles().add(tpcprtFile);
-		return tasklet;
+	public DeleteFilesTasklet deleteFilesTasklet() {
+		return new DeleteFilesTasklet();
 	}
 	
 	@StepScope
