@@ -17,8 +17,12 @@ batch:
   retryLimit: 2
   skipLimit: 5
   
-# Input files
-file:
-  input:
+# SFTP configuration
+sftp:
+  file:
     tpcprt: 
     tpcpy: 
+  hostname: 
+  key:
+    username: 
+    file: 
