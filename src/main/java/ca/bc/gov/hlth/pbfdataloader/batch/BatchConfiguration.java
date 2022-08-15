@@ -147,7 +147,7 @@ public class BatchConfiguration {
 	public Step deleteFiles(Tasklet deleteFilesTasklet) {
 	   	logger.info("Building Step 6 - Delete files");
 	   	// Purge PBFClinicPayee table
-        return stepBuilderFactory.get("Step 6 = deleteFiles")
+        return stepBuilderFactory.get("Step 6 - deleteFiles")
                 .tasklet(deleteFilesTasklet)
                 .build();
 	}

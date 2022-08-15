@@ -13,7 +13,7 @@ import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
 /**
  * Tasklet to delete files from SFTP server once the files have been processed.
  */
-public class DeleteFilesTasklet extends BaseTasklet implements Tasklet{
+public class DeleteFilesTasklet extends BaseTasklet implements Tasklet {
 	
 	@Autowired
 	private SFTPService sftpService;

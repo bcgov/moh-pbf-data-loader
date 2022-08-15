@@ -53,9 +53,9 @@
 		
 		<!-- SFTP -->
 		<dependency>
-		  <groupId>com.hierynomus</groupId>
-		  <artifactId>sshj</artifactId>
-		  <version>0.32.0</version>
+		  	<groupId>com.hierynomus</groupId>
+		  	<artifactId>sshj</artifactId>
+		  	<version>0.32.0</version>
 		</dependency>
 
 		<!-- Unit Testing -->
