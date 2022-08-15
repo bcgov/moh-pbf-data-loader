@@ -9,6 +9,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
@@ -23,12 +26,14 @@ import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
+import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
 
 @SpringBootTest
 @Sql(executionPhase = ExecutionPhase.BEFORE_TEST_METHOD, scripts={"classpath:scripts/insert_pbf_clinic_payee.sql",
 		"classpath:scripts/insert_patient_register.sql"})
 @Sql(executionPhase = ExecutionPhase.AFTER_TEST_METHOD, scripts={ "classpath:scripts/delete_pbf_clinic_payee.sql",
 		"classpath:scripts/delete_patient_register.sql" })
+@ExtendWith(MockitoExtension.class)
 class PbfDataLoaderApplicationTests {
 
 	@Autowired
@@ -39,12 +44,19 @@ class PbfDataLoaderApplicationTests {
 	
 	@Autowired
 	private PBFClinicPayeeRepository pbfClinicPayeeRepository;
+	
+	@Autowired
+	private SFTPService sftpService;
 
 	@Test
 	public void testImportJob_success() throws Exception {		
-		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW.csv");
-		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.csv");
 		
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.csv").getFile();
+		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW.csv").getFile();
+		
+		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
+		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
+
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(100, patientRegisterRepository.count());
@@ -63,10 +75,6 @@ class PbfDataLoaderApplicationTests {
 		Assertions.assertEquals(43, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(346, patientRegisterRepository.count());
 		
-		// Validate that the files are deleted
-		Assertions.assertFalse(tpcprtFile.exists());
-		Assertions.assertFalse(tpcpyFile.exists());
-		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
 		Assertions.assertEquals(ExitStatus.COMPLETED, exitStatus);
@@ -76,6 +84,9 @@ class PbfDataLoaderApplicationTests {
 	public void testImportJob_failedRecord() throws Exception {		
 		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW_one_invalid.csv");
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW_one_invalid.csv");
+		
+		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
+		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
 		
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
@@ -95,10 +106,6 @@ class PbfDataLoaderApplicationTests {
 		Assertions.assertEquals(42, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(345, patientRegisterRepository.count());
 		
-		// Validate that the files are deleted
-		Assertions.assertFalse(tpcprtFile.exists());
-		Assertions.assertFalse(tpcpyFile.exists());
-		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
 		Assertions.assertEquals(ExitStatus.COMPLETED, exitStatus);
@@ -108,6 +115,9 @@ class PbfDataLoaderApplicationTests {
 	public void testImportJob_pbfClientPayeeFailedJob() throws Exception {		
 		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW.csv");
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW_ten_invalid.csv");
+		
+		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
+		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
 		
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
@@ -140,6 +150,9 @@ class PbfDataLoaderApplicationTests {
 	public void testImportJob_pbfPayeeRegisterFailedJob() throws Exception {		
 		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW_ten_invalid.csv");
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.csv");
+		
+		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
+		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
 		
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
