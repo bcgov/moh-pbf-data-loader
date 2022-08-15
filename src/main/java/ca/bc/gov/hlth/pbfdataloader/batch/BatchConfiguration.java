@@ -1,5 +1,6 @@
 package ca.bc.gov.hlth.pbfdataloader.batch;
 
+import java.io.File;
 import java.net.ConnectException;
 
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 
 import ca.bc.gov.hlth.pbfdataloader.batch.listener.JobExecutionListener;
 import ca.bc.gov.hlth.pbfdataloader.batch.mapper.PBFClinicPayeeFieldSetMapper;
@@ -41,7 +41,7 @@ import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
 import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
-import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
+import ca.bc.gov.hlth.pbfdataloader.service.SFTPResource;
 
 @Configuration
 @EnableBatchProcessing
@@ -60,9 +60,6 @@ public class BatchConfiguration {
 	
 	@Autowired
 	private PatientRegisterRepository patientRegisterRepository;
-	
-	@Autowired
-	private SFTPService sftpService;
 	
 	@Value("${batch.retryLimit}")
 	private Integer retryLimit;
@@ -86,7 +83,7 @@ public class BatchConfiguration {
 	
 	@Bean
 	public Step sftpGet(Tasklet sftpGetTasklet) {
-		logger.info("Building Step 1 - Archive tables");
+		logger.info("Building Step 1 - SFTP Get");
         return stepBuilderFactory.get("Step 1 - sftpGet")
                 .tasklet(sftpGetTasklet)
                 .build();
@@ -157,10 +154,10 @@ public class BatchConfiguration {
 
 	@StepScope
 	@Bean
-	public FlatFileItemReader<PBFClinicPayee> pbfClientPayeeReader(@Value("#{jobExecutionContext['tpcpyTempFile']}") String input) {
+	public FlatFileItemReader<PBFClinicPayee> pbfClientPayeeReader(@Value("#{jobExecutionContext['tpcpyTempFile']}") File input) {
 		
 	    return new FlatFileItemReaderBuilder<PBFClinicPayee>().name("tpcpyItemReader")
-	      .resource(new FileSystemResource(input))
+	      .resource(new SFTPResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()
@@ -171,10 +168,10 @@ public class BatchConfiguration {
 
 	@StepScope
 	@Bean
-	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobExecutionContext['tpcprtTempFile']}") String input) {
+	public FlatFileItemReader<PatientRegister> patientRegisterReader(@Value("#{jobExecutionContext['tpcprtTempFile']}") File input) {
 		
 	    return new FlatFileItemReaderBuilder<PatientRegister>().name("tpcprtItemReader")
-	      .resource(sftpService.getAsResource(input))
+	      .resource(new SFTPResource(input))
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()

@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 
 import net.schmizz.sshj.SSHClient;
@@ -26,15 +25,7 @@ public class SFTPService {
 	
 	@Value("${sftp.key.file}")
 	private String keyFile;
-	
-	public FileSystemResource getAsResource(String fileName) {
-		File file = getFile(fileName);
-		// A FileSystemResource cannot be created with a null file (i.e. if the file can't be pulled from the server)
-		// But we can create it with a non-existent filePath so that the Reader recognizes it doesn't exist and skips it
-		// Files which were successfully downloaded are named according to the temp file standards, not just the fileName
-		return file != null ? new SFTPResource(file) : new SFTPResource(fileName);
-	}
-	
+
 	public void removeFile(String fileName) {
 		try (SSHClient sshClient = setupSshj();
 			SFTPClient sftpClient = sshClient.newSFTPClient()) {

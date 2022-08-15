@@ -8,13 +8,13 @@ public class BaseTasklet {
 	
 	protected boolean tpcpyFileExists(ChunkContext chunkContext) {
 		File tpcpyFile = (File)chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().get("tpcpyTempFile");
-		return tpcpyFile != null;
+		return tpcpyFile != null && tpcpyFile.exists();
 		
 	}
 	
 	protected boolean tpcprtFileFileExists(ChunkContext chunkContext) {
-		File tpcpyFile = (File)chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().get("tpcprtTempFile");
-		return tpcpyFile != null;
+		File tpcprtFile = (File)chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().get("tpcprtTempFile");
+		return tpcprtFile != null && tpcprtFile.exists();
 	}
 
 }

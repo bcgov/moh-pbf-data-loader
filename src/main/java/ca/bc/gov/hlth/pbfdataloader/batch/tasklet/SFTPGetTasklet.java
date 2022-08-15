@@ -30,8 +30,12 @@ public class SFTPGetTasklet implements Tasklet {
 		File tpcprtFile = sftpService.getFile(tpcprtFileName);
 
 		ExecutionContext executionContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-		executionContext.put("tpcpyTempFile", tpcpyFile);
-		executionContext.put("tpcprtTempFile", tpcprtFile);
+
+		// A FileSystemResource cannot be created with a null file (i.e. if the file can't be pulled from the server)
+		// But we can create it from a File with a non-existent filePath so that the Reader recognizes it doesn't exist
+		// Use the original fileName in this case since files which were successfully downloaded are named according to the temp file
+		executionContext.put("tpcpyTempFile", tpcpyFile != null ? tpcpyFile : new File(tpcpyFileName));
+		executionContext.put("tpcprtTempFile", tpcprtFile != null ? tpcprtFile : new File(tpcprtFileName));
 
 		return RepeatStatus.FINISHED;
 	}
