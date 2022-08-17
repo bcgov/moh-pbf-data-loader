@@ -1,41 +1,39 @@
 package ca.bc.gov.hlth.pbfdataloader.batch.tasklet;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class DeleteFilesTasklet implements Tasklet {
-	private static final Logger logger = LoggerFactory.getLogger(DeleteFilesTasklet.class);
+import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
 
-	private List<String> files = new ArrayList<>();
+/**
+ * Tasklet to delete files from SFTP server once the files have been processed.
+ */
+public class DeleteFilesTasklet extends BaseTasklet implements Tasklet {
+	
+	@Autowired
+	private SFTPService sftpService;
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-		files.forEach(file -> {
-			try {
-				Files.deleteIfExists(Paths.get(file));
-			} catch (IOException e) {
-				logger.error("Could not delete file {}. Please delete manually.", file);
-			}
-		});
+
+		Map<String, Object> jobParameters = chunkContext.getStepContext().getJobParameters();
+		if (tpcpyFileExists(chunkContext)) {
+			// Use the original fileName on the SFTP server for the actual deletion
+			String tpcpyFile = (String)jobParameters.get("tpcpyFile"); 
+			sftpService.removeFile(tpcpyFile);
+		}
+		if (tpcprtFileFileExists(chunkContext)) {
+			// Use the original fileName on the SFTP server for the actual deletion
+			String tpcprtFile = (String)jobParameters.get("tpcprtFile");
+			sftpService.removeFile(tpcprtFile);	
+		}
+		
 		return RepeatStatus.FINISHED;
-	}
-
-	public List<String> getFiles() {
-		return files;
-	}
-
-	public void setFiles(List<String> files) {
-		this.files = files;
 	}
 
 }
