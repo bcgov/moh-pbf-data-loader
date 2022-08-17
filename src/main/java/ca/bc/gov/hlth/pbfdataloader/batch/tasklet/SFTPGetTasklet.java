@@ -21,7 +21,7 @@ public class SFTPGetTasklet implements Tasklet {
 	private SFTPService sftpService;
 	
 	@Override
-	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 		JobParameters jobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters(); 
 		String tpcpyFileName = jobParameters.getString("tpcpyFile");
 		File tpcpyFile = sftpService.getFile(tpcpyFileName);

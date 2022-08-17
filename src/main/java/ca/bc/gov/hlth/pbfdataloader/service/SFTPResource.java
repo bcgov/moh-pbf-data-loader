@@ -25,7 +25,7 @@ public class SFTPResource extends FileSystemResource {
 	@Override
 	public String getDescription() {
 		// Just return the fileName and not the whole path since we are only concerned with the
-		// original SFTP file name and not it's temporary location on the file system
+		// original SFTP file name and not its temporary location on the file system
 		return getFile().getName();
 	}	
 
