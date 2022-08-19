@@ -56,7 +56,20 @@
 		  	<groupId>com.hierynomus</groupId>
 		  	<artifactId>sshj</artifactId>
 		  	<version>0.32.0</version>
+		  	 <exclusions>
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+          </exclusion>
+        </exclusions>
 		</dependency>
+		
+		<!-- PGP -->
+	    <dependency>
+	        <groupId>org.pgpainless</groupId>
+	        <artifactId>pgpainless-sop</artifactId>
+	        <version>1.3.5</version>
+	    </dependency>
 
 		<!-- Unit Testing -->
 		<dependency>
