@@ -5,12 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
-import org.apache.commons.lang3.Streams;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pgpainless.sop.SOPImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import sop.DecryptionResult;
 import sop.Ready;
@@ -22,44 +24,35 @@ import sop.exception.SOPGPException.KeyIsProtected;
 import sop.exception.SOPGPException.MissingArg;
 import sop.exception.SOPGPException.UnsupportedAsymmetricAlgo;
 
+@Service
 public class PGPService {
+	private static final Logger logger = LoggerFactory.getLogger(PGPService.class);
 	
 	@Value("${pgp.key.file}")
 	private String keyFile;
 	
-	public static void decrypt(File file) throws IOException {
+	public File decrypt(File encryptedFile) {
 		SOP sop = new SOPImpl();
-		//byte[] aliceCert = ...; // Alice' certificate
-		byte[] bobKey = Files.readAllBytes(Paths.get("c:/pbf/0x1B899C93-sec.asc"));    // Bobs secret key 
-		//byte[] bobCert = ...;   // Bobs certificate
+		// decrypt a message and verify its signature(s)
+		File secretKeyFile = new File(keyFile);
+		try (FileInputStream keyIS = new FileInputStream(secretKeyFile); FileInputStream fileIS =  new FileInputStream(encryptedFile)) {
+			byte[] secretKey = keyIS.readAllBytes();
 
-		byte[] ciphertext = Files.readAllBytes(file.toPath()); // the encrypted message
+			byte[] ciphertext = fileIS.readAllBytes();
 
-		ReadyWithResult<DecryptionResult> readyWithResult = sop.decrypt()
-				
-		        .withKey(bobKey)
-		  //      .verifyWith(aliceCert)
-		        .withKeyPassword("pbfdataloader") // if decryption key is protected
-		        .ciphertext(ciphertext);
-//		File decryptedZip = new File("c:/pbf/helloworld.pgp");
-		File decryptedZip = new File("c:/pbf/0x1B899C93-pub.asc.encrypted.txt");
-		readyWithResult.writeTo(new FileOutputStream(decryptedZip));		
+			ReadyWithResult<DecryptionResult> readyWithResult = sop.decrypt()
+			        .withKey(secretKey)
+			        .ciphertext(ciphertext);
+		    
+		    File decryptedFile = File.createTempFile(FilenameUtils.getBaseName(encryptedFile.getName()), FilenameUtils.getExtension(encryptedFile.getName()));
+			readyWithResult.writeTo(new FileOutputStream(decryptedFile));
+			return decryptedFile;
+		} catch (IOException e) {
+			logger.error("Could not decrypt file {}. {}", encryptedFile.getName(), e.getMessage());
+			return null;
+		}
+
 	}
-	
-//	public static void decrypt2() {
-//		 DecryptionStream decryptionStream = PGPainless.decryptAndOrVerify()
-//	                .onInputStream(encryptedInputStream)
-//	                .withOptions(new ConsumerOptions()
-//	                        .addDecryptionKey(bobSecKeys, secretKeyProtector)
-//	                        .addVerificationCert(alicePubKeys)
-//	                );
-//
-//	        Streams.pipeAll(decryptionStream, outputStream);
-//	        decryptionStream.close();
-//
-//	        // Result contains information like signature status etc.
-//	        OpenPgpMetadata metadata = decryptionStream.getResult();
-//	}
 	
 	public static void main(String[] args) throws IOException {
 		

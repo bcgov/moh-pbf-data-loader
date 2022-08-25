@@ -3,7 +3,7 @@ package ca.bc.gov.hlth.pbfdataloader.service;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,20 +37,17 @@ public class SFTPService {
 	}
 
 	public File getFile(String fileName) {
-		File tempFile = null;
 		try (SSHClient sshClient = setupSshj(); SFTPClient sftpClient = sshClient.newSFTPClient()) {
-	    
-		    int separatorIndex = StringUtils.lastIndexOf(fileName, ".");
-		    String prefix = StringUtils.substring(fileName, 0, separatorIndex);
-		    String suffix = StringUtils.substringAfter(fileName, separatorIndex);
+			// All files need to be downloaded to a file to create a temp file and delete it later
+		    File tempFile = File.createTempFile(FilenameUtils.getBaseName(fileName), FilenameUtils.getExtension(fileName));
 		    
-		    tempFile = File.createTempFile(prefix, suffix);
 		    sftpClient.get(fileName, tempFile.getAbsolutePath());
 		    logger.info("Downloaded file {} from SFTP server to temp file {}.", fileName, tempFile.getAbsoluteFile());
+		    return tempFile;
 		} catch (IOException e) {
 			logger.warn("Could not get file {} from SFTP server. {}", fileName, e.getMessage());
+			return null;
 		}
-	    return tempFile;
 	}
 	
 	private SSHClient setupSshj() throws IOException {
