@@ -1,7 +1,6 @@
 package ca.bc.gov.hlth.pbfdataloader.batch.tasklet;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepContribution;
