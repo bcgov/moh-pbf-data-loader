@@ -43,7 +43,6 @@ public class PGPService {
 			logger.error("Could not decrypt file {}. {}", encryptedFile.getName(), e.getMessage());
 			return null;
 		}
-
 	}
 	
 }
