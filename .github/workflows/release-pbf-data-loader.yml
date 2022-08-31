@@ -161,6 +161,7 @@ jobs:
 
       # Tag and push the tag
       - name: Tag the commit with Release number
+        if: ${{ github.event.inputs.branch }}=='main'
         id: tag
         run: |
           echo "Tagging the commit: ${GITHUB_SHA}"
