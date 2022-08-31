@@ -39,7 +39,7 @@ public class SFTPService {
 	public File getFile(String fileName) {
 		try (SSHClient sshClient = setupSshj(); SFTPClient sftpClient = sshClient.newSFTPClient()) {
 			// All files need to be downloaded to a file to create a temp file and delete it later
-		    File tempFile = File.createTempFile(FilenameUtils.getBaseName(fileName), FilenameUtils.getExtension(fileName));
+		    File tempFile = File.createTempFile(FilenameUtils.getBaseName(fileName), "." + FilenameUtils.getExtension(fileName));
 		    
 		    sftpClient.get(fileName, tempFile.getAbsolutePath());
 		    logger.info("Downloaded file {} from SFTP server to temp file {}.", fileName, tempFile.getAbsoluteFile());
