@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import ca.bc.gov.hlth.pbfdataloader.service.PGPService;
 import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
 
 @Configuration
@@ -29,5 +30,11 @@ public class TestConfiguration {
     @Primary
     public SFTPService sftpService() {
     	return Mockito.mock(SFTPService.class);
+    }
+    
+    @Bean
+    @Primary
+    public PGPService pgpService() {
+    	return Mockito.mock(PGPService.class);
     }
 }

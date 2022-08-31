@@ -26,6 +26,7 @@ import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
+import ca.bc.gov.hlth.pbfdataloader.service.PGPService;
 import ca.bc.gov.hlth.pbfdataloader.service.SFTPService;
 
 @SpringBootTest
@@ -47,26 +48,28 @@ class PbfDataLoaderApplicationTests {
 	
 	@Autowired
 	private SFTPService sftpService;
+	
+	@Autowired
+	private PGPService pgpService;
 
 	@Test
 	public void testImportJob_success() throws Exception {		
-		
-		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.csv").getFile();
+
 		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW.csv").getFile();
-		
-		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
-		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.csv").getFile();
+
+		mockServices(tpcpyFile, tpcprtFile);
 
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Verify that our inputFile exists and is not empty
-		Assertions.assertTrue(tpcprtFile.exists());
-		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
-
 		Assertions.assertTrue(tpcpyFile.exists());
 		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
+
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
@@ -82,22 +85,22 @@ class PbfDataLoaderApplicationTests {
 	
 	@Test
 	public void testImportJob_failedRecord() throws Exception {		
-		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW_one_invalid.csv");
-		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW_one_invalid.csv");
-		
-		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
-		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
+
+		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW_one_invalid.csv").getFile();
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW_one_invalid.csv").getFile();
+
+		mockServices(tpcpyFile, tpcprtFile);
 		
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
 		// Verify that our inputFile exists and is not empty
-		Assertions.assertTrue(tpcprtFile.exists());
-		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
-
 		Assertions.assertTrue(tpcpyFile.exists());
 		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcpyFile).compareTo(BigInteger.ZERO) > 0);
+
+		Assertions.assertTrue(tpcprtFile.exists());
+		Assertions.assertTrue(FileUtils.sizeOfAsBigInteger(tpcprtFile).compareTo(BigInteger.ZERO) > 0);
 		
 		JobExecution jobExecution = jobLauncherTestUtils.launchJob(defaultJobParameters(tpcpyFile, tpcprtFile));
 		ExitStatus exitStatus = jobExecution.getExitStatus();
@@ -113,11 +116,11 @@ class PbfDataLoaderApplicationTests {
 	
 	@Test
 	public void testImportJob_pbfClientPayeeFailedJob() throws Exception {		
-		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW.csv");
-		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW_ten_invalid.csv");
-		
-		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
-		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
+
+		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW_ten_invalid.csv").getFile();
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.csv").getFile();
+
+		mockServices(tpcpyFile, tpcprtFile);
 		
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
@@ -136,10 +139,6 @@ class PbfDataLoaderApplicationTests {
 		// Check the record count. Should be rolled back to original data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(100, patientRegisterRepository.count());
-		
-		// Validate that the files aren't deleted
-		Assertions.assertTrue(tpcprtFile.exists());
-		Assertions.assertTrue(tpcpyFile.exists());
 		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
@@ -151,8 +150,7 @@ class PbfDataLoaderApplicationTests {
 		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW_ten_invalid.csv");
 		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.csv");
 		
-		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtFile);
-		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyFile);
+		mockServices(tpcpyFile, tpcprtFile);
 		
 		// Validate initial data
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
@@ -172,10 +170,6 @@ class PbfDataLoaderApplicationTests {
 		Assertions.assertEquals(20, pbfClinicPayeeRepository.count());
 		Assertions.assertEquals(100, patientRegisterRepository.count());
 		
-		// Validate that the files aren't deleted
-		Assertions.assertTrue(tpcprtFile.exists());
-		Assertions.assertTrue(tpcpyFile.exists());
-		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
 		Assertions.assertEquals(ExitStatus.FAILED.getExitCode(), exitStatus.getExitCode());
@@ -183,14 +177,30 @@ class PbfDataLoaderApplicationTests {
 	
 	private static File createTempFile(String inputFileName) throws IOException {
 		Resource inputResource = new ClassPathResource(inputFileName);
-		File inputFile = inputResource.getFile();
-
-		// Create a temp file so that we can delete it in the test
+		return createTempFile(inputResource.getFile());
+	}
+	
+	private static File createTempFile(File inputFile) throws IOException {
 		File tempFile = File.createTempFile(FilenameUtils.getBaseName(inputFile.getName()), "." + FilenameUtils.getExtension(inputFile.getName()));
 
 		FileUtils.copyFile(inputFile, tempFile);
 		
-		return tempFile;
+		return tempFile;		
+	}
+	
+	private void mockServices(File tpcpyFile, File tpcprtFile) throws IOException {
+		File tpcpyEncryptedFile = createTempFile(tpcpyFile);
+		File tpcpyDecryptedFile = createTempFile(tpcpyFile);
+		File tpcprtEncryptedFile = createTempFile(tpcprtFile);
+		File tpcprtDecryptedFile = createTempFile(tpcprtFile);
+
+		// Make a copy of the input file since it gets deleted after being decrypted
+		Mockito.when(sftpService.getFile(tpcpyFile.getAbsolutePath())).thenReturn(tpcpyEncryptedFile);
+		Mockito.when(sftpService.getFile(tpcprtFile.getAbsolutePath())).thenReturn(tpcprtEncryptedFile);
+
+		// Return a copy of the file since the encrypted version (in this case the original file) gets deleted
+		Mockito.when(pgpService.decrypt(tpcpyEncryptedFile)).thenReturn(tpcpyDecryptedFile);
+		Mockito.when(pgpService.decrypt(tpcprtEncryptedFile)).thenReturn(tpcprtDecryptedFile);
 	}
 	
     private JobParameters defaultJobParameters(File tpcpyFile, File tpcprtFile) {
@@ -201,3 +211,4 @@ class PbfDataLoaderApplicationTests {
 				.toJobParameters();
 	}
 }
+
