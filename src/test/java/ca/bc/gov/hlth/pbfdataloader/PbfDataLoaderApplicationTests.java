@@ -55,8 +55,8 @@ class PbfDataLoaderApplicationTests {
 	@Test
 	public void testImportJob_success() throws Exception {		
 
-		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW.csv").getFile();
-		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.csv").getFile();
+		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW.zip").getFile();
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.zip").getFile();
 
 		mockServices(tpcpyFile, tpcprtFile);
 
@@ -86,8 +86,8 @@ class PbfDataLoaderApplicationTests {
 	@Test
 	public void testImportJob_failedRecord() throws Exception {		
 
-		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW_one_invalid.csv").getFile();
-		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW_one_invalid.csv").getFile();
+		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW_one_invalid.zip").getFile();
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW_one_invalid.zip").getFile();
 
 		mockServices(tpcpyFile, tpcprtFile);
 		
@@ -117,8 +117,8 @@ class PbfDataLoaderApplicationTests {
 	@Test
 	public void testImportJob_pbfClientPayeeFailedJob() throws Exception {		
 
-		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW_ten_invalid.csv").getFile();
-		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.csv").getFile();
+		File tpcpyFile = new ClassPathResource("inputs/MSP_TPCPY_VW_ten_invalid.zip").getFile();
+		File tpcprtFile = new ClassPathResource("inputs/MSP_TPCPRT_VW.zip").getFile();
 
 		mockServices(tpcpyFile, tpcprtFile);
 		
@@ -147,8 +147,8 @@ class PbfDataLoaderApplicationTests {
 	
 	@Test
 	public void testImportJob_pbfPayeeRegisterFailedJob() throws Exception {		
-		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW_ten_invalid.csv");
-		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.csv");
+		File tpcprtFile = createTempFile("inputs/MSP_TPCPRT_VW_ten_invalid.zip");
+		File tpcpyFile = createTempFile("inputs/MSP_TPCPY_VW.zip");
 		
 		mockServices(tpcpyFile, tpcprtFile);
 		

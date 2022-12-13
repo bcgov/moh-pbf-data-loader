@@ -21,8 +21,6 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.transform.FlatFileFormatException;
-import org.springframework.batch.repeat.CompletionPolicy;
-import org.springframework.batch.repeat.policy.SimpleCompletionPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -67,6 +65,8 @@ public class BatchConfiguration {
 	@Value("${batch.skipLimit}")
 	private Integer skipLimit;
 	
+	private static final Integer chunkSize = 1000;
+	
 	@Bean
 	public Job importJob(JobExecutionListener listener, Step sftpGet, Step archive, Step writePBFClinicPayee, Step writeClientRegister, Step purge, Step deleteFiles) {
 	    return jobBuilderFactory.get("importJob")
@@ -102,7 +102,7 @@ public class BatchConfiguration {
 		logger.info("Building Step 3 - Load the PBFClinicPayee data");
 		// Load the PBFClinicPayee data
 	    return stepBuilderFactory.get("Step 3 - writePBFClinicPayee")
-	      .<PBFClinicPayee, PBFClinicPayee> chunk(completionPolicy())
+	      .<PBFClinicPayee, PBFClinicPayee> chunk(chunkSize)
 	      .reader(reader)
 	      .processor(pbfClientPayeeProcessor())
 	      .writer(writer)
@@ -120,7 +120,7 @@ public class BatchConfiguration {
 		logger.info("Building Step 4 - Load the PatientRegister data");
 		// Load the PatientRegister data
 	    return stepBuilderFactory.get("Step 4 - writeClientRegister")
-	      .<PatientRegister, PatientRegister> chunk(completionPolicy())
+	      .<PatientRegister, PatientRegister> chunk(chunkSize)
 	      .reader(reader)
 	      .processor(patientRegisterProcessor())
 	      .writer(writer)
@@ -218,21 +218,10 @@ public class BatchConfiguration {
 		return new PurgeTasklet();
 	}
 
-	
 	@StepScope
 	@Bean
 	public DeleteFilesTasklet deleteFilesTasklet() {
 		return new DeleteFilesTasklet();
-	}
-	
-	@StepScope
-	@Bean
-	public CompletionPolicy completionPolicy() {
-		// Set an arbitrarily large limit since we don't actually want to chunk
-		// up the file since we want the whole file processed or not
-		// Alternatively we should be using Tasklets instead of chunks
-		// but we lose the ease of file reading/processing/writing
-		return new SimpleCompletionPolicy(99999);
 	}
 	
 }
