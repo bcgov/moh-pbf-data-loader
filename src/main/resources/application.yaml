@@ -16,4 +16,6 @@ spring:
       hibernate:
         default_schema: pbf
         dialect: org.hibernate.dialect.PostgreSQL95Dialect
+        jdbc.batch_size: 1000
+        order_inserts: true
       javax.persistence.create-database-schemas: true

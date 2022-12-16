@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -16,8 +17,9 @@ import javax.persistence.TemporalType;
 public class PBFClinicPayee {
 
 	@Id
-	@Column(name = "pbf_clinic_payee_id", columnDefinition = "bigserial")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "patient_register_id", columnDefinition = "bigserial")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
+    @SequenceGenerator(name = "seqGen", sequenceName = "pbf_seq", initialValue = 1)
 	private Long pbfClinicPayeeId;
 
 	@Column(name = "payee_number")

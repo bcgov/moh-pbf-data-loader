@@ -1,7 +1,9 @@
 package ca.bc.gov.hlth.pbfdataloader.batch;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Component;
 public class BatchScheduler {
 	private static final Logger logger = LoggerFactory.getLogger(BatchScheduler.class);
 	
+	private static final String DATE_FORMAT = "yyyyMMdd";
+	
 	@Autowired
 	private JobLauncher jobLauncher;
 
@@ -35,9 +39,15 @@ public class BatchScheduler {
 	@Scheduled(cron = "${batch.cron}")
 	public void schedule() throws Exception {
 		logger.info("Running job");
+		
+		// Build the inputFile names dynamically
+		String date = new SimpleDateFormat(DATE_FORMAT).format(new Date());
+		String tpcprtFileWithDate = StringUtils.replace(tpcprtFile, DATE_FORMAT, date);
+		String tpcpyFileWithDate = StringUtils.replace(tpcpyFile, DATE_FORMAT, date);
+		
 		JobParameters params = new JobParametersBuilder()
-				.addString("tpcprtFile", tpcprtFile)
-				.addString("tpcpyFile", tpcpyFile)
+				.addString("tpcprtFile", tpcprtFileWithDate)
+				.addString("tpcpyFile", tpcpyFileWithDate)
 				.addDate("date", new Date())
 				.toJobParameters();
 		JobExecution execution = jobLauncher.run(importJob, params);
