@@ -68,14 +68,14 @@ public class BatchConfiguration {
 	private static final Integer chunkSize = 1000;
 	
 	@Bean
-	public Job importJob(JobExecutionListener listener, Step sftpGet, Step archive, Step writePBFClinicPayee, Step writeClientRegister, Step purge, Step deleteFiles) {
+	public Job importJob(JobExecutionListener listener, Step sftpGet, Step archive, Step writePBFClinicPayee, Step writePatientRegister, Step purge, Step deleteFiles) {
 	    return jobBuilderFactory.get("importJob")
 	      .incrementer(new RunIdIncrementer())
 	      .listener(listener)
 	      .start(sftpGet)
 	      .next(archive)
 	      .next(writePBFClinicPayee)
-	      .next(writeClientRegister)
+	      .next(writePatientRegister)
 	      .next(purge)
 	      .next(deleteFiles)
 	      .build();
@@ -116,10 +116,10 @@ public class BatchConfiguration {
 	}
 	
 	@Bean
-	public Step writeClientRegister(ItemReader<PatientRegister> reader, ItemWriter<PatientRegister> writer) {
+	public Step writePatientRegister(ItemReader<PatientRegister> reader, ItemWriter<PatientRegister> writer) {
 		logger.info("Building Step 4 - Load the PatientRegister data");
 		// Load the PatientRegister data
-	    return stepBuilderFactory.get("Step 4 - writeClientRegister")
+	    return stepBuilderFactory.get("Step 4 - writePatientRegister")
 	      .<PatientRegister, PatientRegister> chunk(chunkSize)
 	      .reader(reader)
 	      .processor(patientRegisterProcessor())

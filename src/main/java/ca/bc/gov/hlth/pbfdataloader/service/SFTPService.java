@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,8 @@ import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 @Service
 public class SFTPService {
 	private static final Logger logger = LoggerFactory.getLogger(SFTPService.class);
+	
+	private static final String SEPARATOR = ".";
 	
 	@Value("${sftp.hostname}")
 	private String hostname;
@@ -39,7 +42,7 @@ public class SFTPService {
 	public File getFile(String fileName) {
 		try (SSHClient sshClient = setupSshj(); SFTPClient sftpClient = sshClient.newSFTPClient()) {
 			// All files need to be downloaded to a file to create a temp file and delete it later
-		    File tempFile = File.createTempFile(FilenameUtils.getBaseName(fileName), "." + FilenameUtils.getExtension(fileName));
+			File tempFile = generateTempFile(fileName);
 		    
 		    sftpClient.get(fileName, tempFile.getAbsolutePath());
 		    logger.info("Downloaded file {} from SFTP server to temp file {}.", fileName, tempFile.getAbsoluteFile());
@@ -49,7 +52,16 @@ public class SFTPService {
 			return null;
 		}
 	}
-	
+
+	private File generateTempFile(String fileName) throws IOException {
+		// Get the file name with no extension (e.g. foo from foo.zip.gpg)
+		String prefix = StringUtils.substringBefore(FilenameUtils.getBaseName(fileName), SEPARATOR);
+
+		// Get the double extension (.zip.gpg)
+		String extension = StringUtils.substringAfter(fileName, SEPARATOR);
+	    return File.createTempFile(prefix, SEPARATOR + extension);		
+	}
+
 	private SSHClient setupSshj() throws IOException {
 	    SSHClient client = new SSHClient();
 	    client.addHostKeyVerifier(new PromiscuousVerifier());
