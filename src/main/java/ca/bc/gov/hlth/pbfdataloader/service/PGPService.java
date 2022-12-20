@@ -20,6 +20,8 @@ import sop.SOP;
 public class PGPService {
 	private static final Logger logger = LoggerFactory.getLogger(PGPService.class);
 	
+	private static final String SEPARATOR = ".";
+	
 	@Value("${pgp.key.file}")
 	private String keyFile;
 	
@@ -49,7 +51,7 @@ public class PGPService {
 		// This will strip the .gpg extension from foo.zip.gpg leaving foo.zip
 		String decryptedFileName = FilenameUtils.getBaseName(encryptedFile.getName());
 		
-	    return File.createTempFile(FilenameUtils.getBaseName(decryptedFileName), "." + FilenameUtils.getExtension(decryptedFileName));
+	    return File.createTempFile(FilenameUtils.getBaseName(decryptedFileName), SEPARATOR + FilenameUtils.getExtension(decryptedFileName));
 	}
 	
 }
