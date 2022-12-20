@@ -20,6 +20,8 @@ import sop.SOP;
 public class PGPService {
 	private static final Logger logger = LoggerFactory.getLogger(PGPService.class);
 	
+	private static final String SEPARATOR = ".";
+	
 	@Value("${pgp.key.file}")
 	private String keyFile;
 	
@@ -35,14 +37,21 @@ public class PGPService {
 			ReadyWithResult<DecryptionResult> readyWithResult = sop.decrypt()
 			        .withKey(secretKey)
 			        .ciphertext(ciphertext);
-		    
-		    File decryptedFile = File.createTempFile(FilenameUtils.getBaseName(encryptedFile.getName()), FilenameUtils.getExtension(encryptedFile.getName()));
+
+		    File decryptedFile = generateTempFile(encryptedFile);
 			readyWithResult.writeTo(new FileOutputStream(decryptedFile));
 			return decryptedFile;
 		} catch (IOException e) {
 			logger.error("Could not decrypt file {}. {}", encryptedFile.getName(), e.getMessage());
 			return null;
 		}
+	}
+	
+	private File generateTempFile(File encryptedFile) throws IllegalArgumentException, IOException {
+		// This will strip the .gpg extension from foo.zip.gpg leaving foo.zip
+		String decryptedFileName = FilenameUtils.getBaseName(encryptedFile.getName());
+		
+	    return File.createTempFile(FilenameUtils.getBaseName(decryptedFileName), SEPARATOR + FilenameUtils.getExtension(decryptedFileName));
 	}
 	
 }
