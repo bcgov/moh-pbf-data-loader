@@ -175,7 +175,7 @@ public class BatchConfiguration {
 	      .strict(false)
 	      .linesToSkip(1)
 	      .delimited()
-	      .names("PHN", "PAYENUM", "RPRCTNR", "EFCTVDT", "CNCLDT", "SPCLND", "RGRSNCD", "DRGRSNCD", "CNCLRSN")
+	      .names("PHN", "PAYENUM", "RPRCTNR", "RPRCTFN", "RPRCTMN", "RPRCTSN", "EFCTVDT", "CNCLDT", "SPCLND", "RGRSNCD", "DRGRSNCD", "CNCLRSN")
 	      .fieldSetMapper(new PatientRegisterFieldSetMapper())
 	      .build();
 	}

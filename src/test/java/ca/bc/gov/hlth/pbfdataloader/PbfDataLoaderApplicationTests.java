@@ -76,7 +76,7 @@ class PbfDataLoaderApplicationTests {
 
 		// Check the record count
 		Assertions.assertEquals(43, pbfClinicPayeeRepository.count());
-		Assertions.assertEquals(346, patientRegisterRepository.count());
+		Assertions.assertEquals(50, patientRegisterRepository.count());
 		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
@@ -107,7 +107,7 @@ class PbfDataLoaderApplicationTests {
 
 		// Check the record count. One record failed for each
 		Assertions.assertEquals(42, pbfClinicPayeeRepository.count());
-		Assertions.assertEquals(345, patientRegisterRepository.count());
+		Assertions.assertEquals(49, patientRegisterRepository.count());
 		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
