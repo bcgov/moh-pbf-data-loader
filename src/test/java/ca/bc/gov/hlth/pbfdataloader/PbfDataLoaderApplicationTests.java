@@ -1,9 +1,16 @@
 package ca.bc.gov.hlth.pbfdataloader;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -24,6 +31,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 
+import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PBFClinicPayee;
+import ca.bc.gov.hlth.pbfdataloader.persistence.entity.PatientRegister;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PBFClinicPayeeRepository;
 import ca.bc.gov.hlth.pbfdataloader.persistence.repository.PatientRegisterRepository;
 import ca.bc.gov.hlth.pbfdataloader.service.PGPService;
@@ -75,8 +84,37 @@ class PbfDataLoaderApplicationTests {
 		ExitStatus exitStatus = jobExecution.getExitStatus();
 
 		// Check the record count
-		Assertions.assertEquals(43, pbfClinicPayeeRepository.count());
-		Assertions.assertEquals(50, patientRegisterRepository.count());
+		List<PBFClinicPayee> payees = pbfClinicPayeeRepository.findAll();
+		Assertions.assertEquals(43, payees.size());
+		List<PatientRegister> patients = patientRegisterRepository.findAll();
+		Assertions.assertEquals(50, patients.size());
+		
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		
+		// Verify record content
+		PBFClinicPayee payee = payees.get(0);
+		assertFalse(payee.getArchived());
+		assertEquals("2005-06-30", formatter.format(payee.getCancelDate()));
+		assertEquals("1999-08-01", formatter.format(payee.getEffectiveDate()));
+		assertEquals("A6048", payee.getPayeeNumber());
+		assertNotNull(payee.getPbfClinicPayeeId());
+		assertEquals("10864", payee.getReportGroup());
+		
+		PatientRegister patient = patients.get(0);
+		assertEquals("0", patient.getAdministrativeCode());
+		assertFalse(patient.getArchived());
+		assertEquals("2000-12-31", formatter.format(patient.getCancelDate()));
+		assertEquals("M", patient.getCancelReasonCode());
+		assertEquals("F", patient.getDeregistrationReasonCode());
+		assertEquals("1999-09-01", formatter.format(patient.getEffectiveDate()));
+		assertNotNull(patient.getPatientRegisterId());
+		assertEquals("A6055", patient.getPayeeNumber());
+		assertEquals("8715913345", patient.getPhn());
+		assertEquals("JOHN", patient.getRegisteredPractitionerFirstName());
+		assertEquals("W", patient.getRegisteredPractitionerMiddleName());		
+		assertEquals("SMITH", patient.getRegisteredPractitionerSurname());
+		assertEquals("X9487", patient.getRegisteredPractitionerNumber());
+		assertNull(patient.getRegistrationReasonCode());
 		
 		// Check job status
 		Assertions.assertEquals(jobExecution.getJobInstance().getJobName(), "importJob");
