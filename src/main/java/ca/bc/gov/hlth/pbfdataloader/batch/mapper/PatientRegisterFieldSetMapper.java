@@ -19,8 +19,11 @@ public class PatientRegisterFieldSetMapper implements FieldSetMapper<PatientRegi
 		patientRegister.setPhn(fieldSet.readString("PHN"));
 		patientRegister.setPayeeNumber(fieldSet.readString("PAYENUM"));
 		patientRegister.setRegisteredPractitionerNumber(fieldSet.readString("RPRCTNR"));
+		patientRegister.setRegisteredPractitionerFirstName(fieldSet.readString("RPRCTFN"));
+		patientRegister.setRegisteredPractitionerMiddleName(fieldSet.readString("RPRCTMN"));
+		patientRegister.setRegisteredPractitionerSurname(fieldSet.readString("RPRCTSN"));
 		patientRegister.setEffectiveDate(fieldSet.readDate("EFCTVDT", PBF_DATE_FORMAT));
-		patientRegister.setCancelDate(fieldSet.readDate("EFCTVDT", PBF_DATE_FORMAT));
+		patientRegister.setCancelDate(fieldSet.readDate("CNCLDT", PBF_DATE_FORMAT));
 		patientRegister.setAdministrativeCode(fieldSet.readString("SPCLND"));
 		patientRegister.setRegistrationReasonCode(StringUtils.trimToNull(fieldSet.readString("RGRSNCD")));
 		patientRegister.setDeregistrationReasonCode(StringUtils.trimToNull(fieldSet.readString("DRGRSNCD")));
