@@ -17,7 +17,7 @@ import javax.persistence.TemporalType;
 public class PBFClinicPayee {
 
 	@Id
-	@Column(name = "patient_register_id", columnDefinition = "bigserial")
+	@Column(name = "pbf_clinic_payee_id", columnDefinition = "bigserial")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
     @SequenceGenerator(name = "seqGen", sequenceName = "pbf_seq", initialValue = 1)
 	private Long pbfClinicPayeeId;
