@@ -2,6 +2,9 @@
 --  Create the schema since this version of Hibernate doesn't seem to create it despite the correct properties
 --  Ensure that the BATCH_ tables get created in the PBF Schema instead of Public (default)
 
+-- Note, if the tables in the PBF schema need to be dropped and recreated then permissions for mspdirect-dbuser
+-- will need to be manually applied again via a GRANT SELECT
+
 CREATE SCHEMA PBF;
 
 CREATE TABLE PBF.BATCH_JOB_INSTANCE  (
