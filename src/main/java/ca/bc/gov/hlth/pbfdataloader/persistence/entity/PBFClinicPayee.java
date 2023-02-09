@@ -22,14 +22,14 @@ public class PBFClinicPayee {
     @SequenceGenerator(name = "seqGen", sequenceName = "pbf_seq", initialValue = 1)
 	private Long pbfClinicPayeeId;
 
-	@Column(name = "payee_number")
+	@Column(name = "payee_number", nullable = false)
 	private String payeeNumber;
 
 	@Column(name = "effective_date", nullable = false)
 	@Temporal(TemporalType.DATE)
 	private Date effectiveDate;
 
-	@Column(name = "cancel_date", nullable = false)
+	@Column(name = "cancel_date", nullable = true)
 	@Temporal(TemporalType.DATE)
 	private Date cancelDate;
 
