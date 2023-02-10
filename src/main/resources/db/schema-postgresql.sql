@@ -1,11 +1,11 @@
 -- This is a custom setup script to:
 --  Create the schema since this version of Hibernate doesn't seem to create it despite the correct properties
+--  Add SELECT priveleges to the main mspdirect-dbuser
 --  Ensure that the BATCH_ tables get created in the PBF Schema instead of Public (default)
 
--- Note, if the tables in the PBF schema need to be dropped and recreated then permissions for mspdirect-dbuser
--- will need to be manually applied again via a GRANT SELECT
-
 CREATE SCHEMA PBF;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA PBF TO mspdirect-dbuser;
 
 CREATE TABLE PBF.BATCH_JOB_INSTANCE  (
 	JOB_INSTANCE_ID BIGINT  NOT NULL PRIMARY KEY ,
