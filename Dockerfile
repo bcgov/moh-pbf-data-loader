@@ -1,14 +1,14 @@
 
 # Build stage
 # Add code for maven build
-FROM maven:3.8.3-openjdk-11-slim as build-stage
+FROM maven:3.9-eclipse-temurin-11 as build-stage
 COPY src /home/app/src
 COPY pom.xml /home/app
 
 RUN mvn -f /home/app/pom.xml clean install
 
 
-FROM adoptopenjdk:11-jre-hotspot
+FROM eclipse-temurin:11-jre
 
 #Setting the work dir as tmp coz
 WORKDIR /tmp
